@@ -1,8 +1,18 @@
 # ProofNote Backend
 
-Monad 测试网上的 ProofNote 后端：Fastify API + Indexer worker + 共享包 monorepo。
+Monad 测试网上的 ProofNote 后端：Fastify API + Indexer worker + 共享包 monorepo + 链上合约。
 
 设计文档：`../ProofNote_BACKEND_DEVELOPMENT_V1.0.md` · 接口规范：`../ProofNote_MVP_API_SPEC_V1.0.md`
+
+## 服务器一键部署
+
+```bash
+# 代码上传后（git clone 或 scp），在服务器上执行：
+bash backend/deploy/setup-server.sh
+# 可选：PORT=8080 SKIP_SYSTEMD=1 SKIP_POSTGRES=1 bash backend/deploy/setup-server.sh
+```
+
+自动完成：Node 20+ / pnpm 9 / PostgreSQL / 依赖 / .env / 建表 / systemd 常驻服务 / 健康检查，幂等可重复执行。详见脚本头部注释。
 
 ## 结构
 

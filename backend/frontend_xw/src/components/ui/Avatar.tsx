@@ -36,7 +36,7 @@ export function Avatar({
         size === 80 && "text-title",
         size === 40 && "text-data",
         size === 32 && "text-label",
-        size === 20 && "text-[10px]",
+        size === 20 && "text-caption",
         className,
       )}
       style={{ width: size, height: size }}

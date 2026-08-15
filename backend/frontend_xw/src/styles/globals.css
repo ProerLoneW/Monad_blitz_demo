@@ -44,6 +44,7 @@
   --radius-media: 10px;
   --radius-pill: 9999px;
   --radius-input: 8px;
+  --radius-chip: 6px;
 
   /* Shadows — modal only */
   --shadow-modal: rgba(26, 27, 31, 0.08) 0px 8px 32px;

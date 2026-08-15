@@ -177,14 +177,16 @@ export async function getCampaignNote(campaignId: string): Promise<Note> {
   return getNote(campaign.noteId);
 }
 
-export async function getCampaignTransparency(campaignId: string): Promise<CampaignTransparency> {
+export async function getCampaignTransparency(
+  campaignId: string,
+): Promise<CampaignTransparency & { supporterCount: number }> {
   if (USE_MOCK) {
     await latency();
-    return campaignId === mock.CAMPAIGN_SHELTER
-      ? mock.shelterTransparency
-      : notFound("Campaign not found");
+    if (campaignId !== mock.CAMPAIGN_SHELTER) notFound("Campaign not found");
+    return { ...mock.shelterTransparency, supporterCount: mock.shelterSupporterCount };
   }
-  return request<CampaignTransparency>(`/campaigns/${campaignId}/transparency`);
+  const data = await request<CampaignTransparency>(`/campaigns/${campaignId}/transparency`);
+  return { ...data, supporterCount: data.funding.length };
 }
 
 export async function getProfile(addressOrHandle: string): Promise<Profile & { stats: ProfileStatsExtended }> {

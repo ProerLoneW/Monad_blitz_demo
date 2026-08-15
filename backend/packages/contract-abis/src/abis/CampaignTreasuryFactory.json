@@ -1,0 +1,23 @@
+[
+  {
+    "type": "event",
+    "name": "CampaignCreated",
+    "inputs": [
+      { "name": "campaignKey", "type": "bytes32", "indexed": true },
+      { "name": "impactKey", "type": "bytes32", "indexed": true },
+      { "name": "organizer", "type": "address", "indexed": true },
+      { "name": "treasury", "type": "address", "indexed": false }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "function",
+    "name": "createCampaign",
+    "inputs": [
+      { "name": "campaignKey", "type": "bytes32" },
+      { "name": "impactKey", "type": "bytes32" }
+    ],
+    "outputs": [{ "name": "treasury", "type": "address" }],
+    "stateMutability": "nonpayable"
+  }
+]

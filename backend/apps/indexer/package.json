@@ -1,0 +1,17 @@
+{
+  "name": "@proofnote/indexer",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/main.ts",
+    "start": "tsx src/main.ts"
+  },
+  "dependencies": {
+    "@proofnote/chain-config": "workspace:*",
+    "@proofnote/contract-abis": "workspace:*",
+    "@proofnote/db": "workspace:*",
+    "drizzle-orm": "^0.38.0",
+    "viem": "^2.23.0"
+  }
+}

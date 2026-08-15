@@ -1,0 +1,30 @@
+{
+  "name": "proofnote-backend",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@9.15.9",
+  "description": "ProofNote backend monorepo (API + Indexer + shared packages) on Monad testnet",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev:api": "tsx watch apps/api/src/server.ts",
+    "dev:indexer": "tsx watch apps/indexer/src/main.ts",
+    "start:api": "tsx apps/api/src/server.ts",
+    "start:indexer": "tsx apps/indexer/src/main.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p apps/api/tsconfig.json --noEmit && tsc -p apps/indexer/tsconfig.json --noEmit",
+    "test": "tsx packages/hash-utils/test/run.ts",
+    "db:push": "tsx packages/db/scripts/push.ts",
+    "dev:pg": "tsx scripts/dev-pg.ts",
+    "smoke": "tsx scripts/smoke.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.0",
+    "embedded-postgres": "18.4.0-beta.17",
+    "fastify": "^5.2.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "viem": "^2.23.0"
+  }
+}

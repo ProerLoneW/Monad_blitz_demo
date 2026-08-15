@@ -1,0 +1,116 @@
+[
+  {
+    "type": "event",
+    "name": "StreamCreated",
+    "inputs": [
+      { "name": "streamId", "type": "uint256", "indexed": true },
+      { "name": "noteKey", "type": "bytes32", "indexed": true },
+      { "name": "fan", "type": "address", "indexed": true },
+      { "name": "creator", "type": "address", "indexed": false },
+      { "name": "ratePerSecond", "type": "uint256", "indexed": false },
+      { "name": "budget", "type": "uint256", "indexed": false }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "StreamPaused",
+    "inputs": [
+      { "name": "streamId", "type": "uint256", "indexed": true },
+      { "name": "accrued", "type": "uint256", "indexed": false }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "StreamResumed",
+    "inputs": [{ "name": "streamId", "type": "uint256", "indexed": true }],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "StreamSettled",
+    "inputs": [
+      { "name": "streamId", "type": "uint256", "indexed": true },
+      { "name": "accrued", "type": "uint256", "indexed": false },
+      { "name": "creatorCredit", "type": "uint256", "indexed": false },
+      { "name": "fanRefund", "type": "uint256", "indexed": false },
+      { "name": "protocolFee", "type": "uint256", "indexed": false }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "CreditWithdrawn",
+    "inputs": [
+      { "name": "account", "type": "address", "indexed": true },
+      { "name": "amount", "type": "uint256", "indexed": false }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "function",
+    "name": "createStream",
+    "inputs": [
+      { "name": "noteKey", "type": "bytes32" },
+      { "name": "creator", "type": "address" },
+      { "name": "ratePerSecond", "type": "uint128" }
+    ],
+    "outputs": [{ "name": "", "type": "uint256" }],
+    "stateMutability": "payable"
+  },
+  {
+    "type": "function",
+    "name": "pauseStream",
+    "inputs": [{ "name": "streamId", "type": "uint256" }],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "resumeStream",
+    "inputs": [{ "name": "streamId", "type": "uint256" }],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "stopAndSettle",
+    "inputs": [{ "name": "streamId", "type": "uint256" }],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "settleExpired",
+    "inputs": [{ "name": "streamId", "type": "uint256" }],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "withdraw",
+    "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "previewStream",
+    "inputs": [{ "name": "streamId", "type": "uint256" }],
+    "outputs": [
+      { "name": "accrued", "type": "uint256" },
+      { "name": "remainingBudget", "type": "uint256" },
+      { "name": "estimatedEndTime", "type": "uint256" },
+      { "name": "status", "type": "uint8" }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "claimable",
+    "inputs": [{ "name": "account", "type": "address" }],
+    "outputs": [{ "name": "", "type": "uint256" }],
+    "stateMutability": "view"
+  }
+]

@@ -1,0 +1,35 @@
+[
+  {
+    "type": "event",
+    "name": "Attested",
+    "inputs": [
+      { "name": "impactKey", "type": "bytes32", "indexed": true },
+      { "name": "attester", "type": "address", "indexed": true },
+      { "name": "attestationType", "type": "uint8", "indexed": true },
+      { "name": "statementHash", "type": "bytes32", "indexed": false }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "function",
+    "name": "attest",
+    "inputs": [
+      { "name": "impactKey", "type": "bytes32" },
+      { "name": "attestationType", "type": "uint8" },
+      { "name": "statementHash", "type": "bytes32" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "hasAttested",
+    "inputs": [
+      { "name": "impactKey", "type": "bytes32" },
+      { "name": "attester", "type": "address" },
+      { "name": "attestationType", "type": "uint8" }
+    ],
+    "outputs": [{ "name": "", "type": "bool" }],
+    "stateMutability": "view"
+  }
+]

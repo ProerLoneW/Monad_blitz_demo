@@ -1,0 +1,58 @@
+[
+  {
+    "type": "event",
+    "name": "ImpactRegistered",
+    "inputs": [
+      { "name": "impactKey", "type": "bytes32", "indexed": true },
+      { "name": "noteKey", "type": "bytes32", "indexed": true },
+      { "name": "creator", "type": "address", "indexed": true },
+      { "name": "claimHash", "type": "bytes32", "indexed": false },
+      { "name": "evidenceManifestHash", "type": "bytes32", "indexed": false },
+      { "name": "manifestURI", "type": "string", "indexed": false }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "EvidenceManifestUpdated",
+    "inputs": [
+      { "name": "impactKey", "type": "bytes32", "indexed": true },
+      { "name": "version", "type": "uint32", "indexed": false },
+      { "name": "evidenceManifestHash", "type": "bytes32", "indexed": false },
+      { "name": "manifestURI", "type": "string", "indexed": false }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "function",
+    "name": "registerImpact",
+    "inputs": [
+      { "name": "impactKey", "type": "bytes32" },
+      { "name": "noteKey", "type": "bytes32" },
+      { "name": "claimHash", "type": "bytes32" },
+      { "name": "evidenceManifestHash", "type": "bytes32" },
+      { "name": "manifestURI", "type": "string" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "updateEvidenceManifest",
+    "inputs": [
+      { "name": "impactKey", "type": "bytes32" },
+      { "name": "version", "type": "uint32" },
+      { "name": "evidenceManifestHash", "type": "bytes32" },
+      { "name": "manifestURI", "type": "string" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "ownerOfImpact",
+    "inputs": [{ "name": "impactKey", "type": "bytes32" }],
+    "outputs": [{ "name": "", "type": "address" }],
+    "stateMutability": "view"
+  }
+]

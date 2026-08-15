@@ -1,0 +1,42 @@
+[
+  {
+    "type": "event",
+    "name": "TipSent",
+    "inputs": [
+      { "name": "noteKey", "type": "bytes32", "indexed": true },
+      { "name": "supporter", "type": "address", "indexed": true },
+      { "name": "creator", "type": "address", "indexed": true },
+      { "name": "grossAmount", "type": "uint256", "indexed": false },
+      { "name": "protocolFee", "type": "uint256", "indexed": false },
+      { "name": "creatorAmount", "type": "uint256", "indexed": false }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "function",
+    "name": "tipNative",
+    "inputs": [
+      { "name": "noteKey", "type": "bytes32" },
+      { "name": "creator", "type": "address" }
+    ],
+    "outputs": [],
+    "stateMutability": "payable"
+  },
+  {
+    "type": "function",
+    "name": "previewTip",
+    "inputs": [{ "name": "grossAmount", "type": "uint256" }],
+    "outputs": [
+      { "name": "creatorAmount", "type": "uint256" },
+      { "name": "protocolFee", "type": "uint256" }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "feeBps",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "uint16" }],
+    "stateMutability": "view"
+  }
+]

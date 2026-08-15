@@ -1,0 +1,22 @@
+{
+  "name": "@proofnote/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "ProofNote on-chain contracts (Monad). Foundry 工程；npm 侧仅承载无 forge 环境的编译/测试工具链",
+  "scripts": {
+    "compile": "tsx scripts/compile.ts",
+    "abi-check": "tsx scripts/abi-check.ts",
+    "test:evm": "tsx scripts/evm-test.ts",
+    "verify:all": "pnpm compile && pnpm abi-check && pnpm test:evm"
+  },
+  "devDependencies": {
+    "@ethereumjs/common": "^10.1.2",
+    "@ethereumjs/evm": "^10.1.2",
+    "@ethereumjs/util": "^10.1.2",
+    "solc": "0.8.28",
+    "tsx": "^4.19.2",
+    "viem": "^2.23.0",
+    "@proofnote/contract-abis": "workspace:*"
+  }
+}

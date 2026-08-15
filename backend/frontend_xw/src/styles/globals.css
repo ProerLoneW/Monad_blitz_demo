@@ -1,0 +1,127 @@
+@import "tailwindcss";
+
+/*
+ * ProofNote design tokens.
+ * Values follow FRONTEND_DESIGN.md §19 (the declared single source of token
+ * values); token names and the tokens §19 omits (iris-tint / leaf-tint /
+ * pill radius / type & spacing scale / layout widths) follow DESIGN.md.
+ */
+@theme {
+  /* Colors */
+  --color-paper: #FAFAF8;
+  --color-card: #FFFFFF;
+  --color-ink: #1A1B1F;
+  --color-graphite: #5B5D66;
+  --color-smoke: #9A9CA4;
+  --color-hairline: #E7E5DF;
+  --color-hairline-strong: #D8D5CC;
+  --color-iris: #574CD6;
+  --color-iris-strong: #473CBD;
+  --color-iris-tint: #EFEEFA;
+  --color-leaf: #2E7D5B;
+  --color-leaf-tint: #E9F3EE;
+  --color-leaf-wash: rgba(46, 125, 91, 0.05);
+  --color-amber: #B7791F;
+  --color-red: #C0473E;
+  --color-ink-hover: #2A2B31;
+
+  /* Typography（fontsource 自托管可变字体 + 回退栈） */
+  --font-serif: "Source Serif 4 Variable", Georgia, "Times New Roman", serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+
+  /* Type scale (font-size tokens) */
+  --text-caption: 12px;
+  --text-label: 14px;
+  --text-data: 16px;
+  --text-body: 16px;
+  --text-title: 24px;
+  --text-note-title: 32px;
+  --text-heading: 40px;
+
+  /* Radius */
+  --radius-card: 12px;
+  --radius-media: 10px;
+  --radius-pill: 9999px;
+  --radius-input: 8px;
+
+  /* Shadows — modal only */
+  --shadow-modal: rgba(26, 27, 31, 0.08) 0px 8px 32px;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+
+  /*
+   * Spacing tokens（DESIGN.md 4pt 制）— 显式定义后 Tailwind 工具类
+   * 按 px 语义解析：p-24 = 24px、gap-8 = 8px（而非默认的 0.25rem 倍数）。
+   * 未列出的数值仍按默认倍数计算（如 h-11 = 44px）。
+   */
+  --spacing-4: 4px;
+  --spacing-8: 8px;
+  --spacing-12: 12px;
+  --spacing-16: 16px;
+  --spacing-20: 20px;
+  --spacing-24: 24px;
+  --spacing-32: 32px;
+  --spacing-64: 64px;
+
+  /* Layout widths */
+  --layout-content-max: 1120px;
+  --layout-feed: 640px;
+  --layout-detail-content: 760px;
+  --layout-detail-aside: 320px;
+  --layout-right-rail: 300px;
+  --layout-sidebar: 240px;
+}
+
+:root {
+  /* Layout */
+  --content-max-width: 1120px;
+  --feed-column: 640px;
+  --detail-content: 760px;
+  --detail-aside: 320px;
+  --sidebar-w: 240px;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Numbers in mono are naturally tabular (JetBrains Mono); enforce anyway. */
+.font-mono,
+[data-tnum] {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Iris pulse dot — the only perpetual animation besides ticking numerals.
+ * 1.6s ease-in-out infinite, opacity 1 → 0.35 → 1 (DESIGN.md Stream Row). */
+@keyframes iris-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 rgba(87, 76, 214, 0.25);
+  }
+  50% {
+    opacity: 0.35;
+    box-shadow: 0 0 0 4px rgba(87, 76, 214, 0);
+  }
+}
+
+.pulse-dot {
+  animation: iris-pulse 1.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse-dot {
+    animation: none;
+  }
+}

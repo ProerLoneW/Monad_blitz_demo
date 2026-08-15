@@ -1,0 +1,16 @@
+{
+  "files": [],
+  "references": [],
+  "include": ["scripts/**/*.ts"],
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@proofnote/api-types": ["packages/api-types/src/index.ts"],
+      "@proofnote/hash-utils": ["packages/hash-utils/src/index.ts"],
+      "@proofnote/chain-config": ["packages/chain-config/src/index.ts"],
+      "@proofnote/contract-abis": ["packages/contract-abis/src/index.ts"],
+      "@proofnote/db": ["packages/db/src/index.ts"]
+    }
+  },
+  "extends": "./tsconfig.base.json"
+}

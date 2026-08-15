@@ -410,6 +410,32 @@
   .tx-step.active .step-dot { border-color: var(--accent); color: var(--accent); animation: pulse 1s infinite; }
   .tx-step.done { color: var(--green); }
   .tx-step.done .step-dot { background: var(--green-soft); border-color: var(--green); }
+  .tx-step.failed { color: var(--red); font-weight: 600; }
+  .tx-step.failed .step-dot { border-color: var(--red); color: var(--red); background: #fff3f2; }
+  .tx-error {
+    margin-top: 12px;
+    padding: 12px 14px;
+    border: 1px solid #e7b7b2;
+    border-radius: 10px;
+    background: #fff6f5;
+    color: #8d2f29;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .tx-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 12px;
+    padding: 10px 12px;
+    border-radius: 9px;
+    background: var(--lavender);
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 11px;
+  }
+  .tx-meta a { color: inherit; font-family: var(--sans); font-weight: 600; }
   @keyframes pulse { 50% { box-shadow: 0 0 0 5px var(--accent-soft); } }
   .tx-actions { display: flex; justify-content: flex-end; margin-top: 18px; }
   .form-field { display: grid; gap: 6px; margin: 14px 0; }
@@ -876,8 +902,8 @@
           <div class="amount"><span id="stream-amount">0.007000</span><span class="unit">MON</span></div>
           <div class="progress"><div class="bar" id="stream-progress"></div></div>
           <div class="row"><span class="k">速率</span><span class="v">0.001 MON/s</span></div>
-          <div class="row"><span class="k">剩余</span><span class="v" id="stream-remaining">0.0130 MON</span></div>
-          <div class="row"><span class="k">预计结束</span><span class="v" id="stream-end">13s</span></div>
+          <div class="row"><span class="k">剩余</span><span class="v" id="stream-remaining">0.1930 MON</span></div>
+          <div class="row"><span class="k">预计结束</span><span class="v" id="stream-end">193s</span></div>
         </div>
         <div class="panel-actions">
           <button class="btn" id="pause-stream">暂停</button>
@@ -1246,12 +1272,12 @@
           <button class="active" data-mode="stream">持续支持</button>
         </div>
         <div class="row" id="support-rate-row"><span class="k" id="support-rate-label">速率</span><span class="v" id="support-rate-value">0.001 MON/s</span></div>
-        <div class="row" id="support-budget-row"><span class="k">最大预算</span><span class="v">0.0200 MON</span></div>
-        <div class="row" style="margin-top:8px;"><span class="k">创作者获得</span><span class="v" id="creator-quote">0.0199 MON</span></div>
-        <div class="row"><span class="k">协议费用</span><span class="v" id="protocol-quote">0.0001 MON</span></div>
+        <div class="row" id="support-budget-row"><span class="k">最大预算</span><span class="v">0.2000 MON</span></div>
+        <div class="row" style="margin-top:8px;"><span class="k">创作者获得</span><span class="v" id="creator-quote">0.1990 MON</span></div>
+        <div class="row"><span class="k">协议费用</span><span class="v" id="protocol-quote">0.0010 MON</span></div>
         <div class="row" style="border-top:2px solid var(--line-2); margin-top:6px; padding-top:10px;">
           <span class="k" style="font-weight:600; color:var(--ink);">总计</span>
-          <span class="v" style="font-weight:600;" id="total-quote">0.0200 MON</span>
+          <span class="v" style="font-weight:600;" id="total-quote">0.2000 MON</span>
         </div>
         <button class="btn primary block" style="margin-top:14px;" id="start-support">开始持续支持</button>
       </div>
@@ -1420,11 +1446,13 @@
 <div class="tx-overlay" id="tx-overlay" role="dialog" aria-modal="true" aria-labelledby="tx-title">
   <div class="tx-dialog">
     <h3 id="tx-title">准备交易</h3>
-    <p id="tx-description">正在获取最新的链上参数。</p>
+    <p id="tx-description" aria-live="polite">正在获取最新的链上参数。</p>
     <div class="tx-step" data-step="prepare"><span class="step-dot">1</span><span>准备交易参数</span></div>
     <div class="tx-step" data-step="wallet"><span class="step-dot">2</span><span>在钱包中确认</span></div>
     <div class="tx-step" data-step="submitted"><span class="step-dot">3</span><span>已提交到 Monad</span></div>
     <div class="tx-step" data-step="confirmed"><span class="step-dot">4</span><span>链上确认</span></div>
+    <div class="tx-meta" id="tx-meta" hidden><span id="tx-hash">Tx —</span><a id="tx-explorer" href="#" target="_blank" rel="noreferrer">在浏览器查看 ↗</a></div>
+    <div class="tx-error" id="tx-error" role="alert" hidden></div>
     <div class="tx-actions">
       <button class="btn" id="tx-close" disabled>完成</button>
     </div>
@@ -1451,16 +1479,25 @@
   </div>
 </div>
 
+<script src="./proofnote-web3-adapter.js"></script>
 <script>
   const tabs = [...document.querySelectorAll('#tabs .tab')];
   const screens = [...document.querySelectorAll('.screen')];
   const toastStack = document.getElementById('toast-stack');
   const txOverlay = document.getElementById('tx-overlay');
   const txClose = document.getElementById('tx-close');
+  const txMeta = document.getElementById('tx-meta');
+  const txHash = document.getElementById('tx-hash');
+  const txExplorer = document.getElementById('tx-explorer');
+  const txError = document.getElementById('tx-error');
   const composerOverlay = document.getElementById('composer-overlay');
   const navRoute = { '首页': 's4', '公益': 's2', '个人主页': 's3' };
   let walletConnected = true;
-  let txTimers = [];
+  let walletAddress = '0x8870000000000000000000000000000000003F2a';
+  let activeStreamId = '42';
+
+  const getAdapter = () => window.ProofNoteAdapter;
+  const shortValue = (value, head = 6, tail = 4) => value && value.length > head + tail ? `${value.slice(0, head)}…${value.slice(-tail)}` : value;
 
   function showToast(title, message, tone = '') {
     const toast = document.createElement('div');
@@ -1505,15 +1542,23 @@
       card.setAttribute('role', 'button');
       card.setAttribute('tabindex', '0');
       card.setAttribute('aria-label', walletConnected ? '钱包已连接，点击断开' : '连接钱包');
-      card.querySelector('.addr').textContent = walletConnected ? '0x887…3F2a' : '连接钱包';
+      card.querySelector('.addr').textContent = walletConnected ? shortValue(walletAddress) : '连接钱包';
       card.querySelector('.net').textContent = walletConnected ? 'Monad 测试网' : '未连接';
     });
   }
 
-  function toggleWallet() {
-    walletConnected = !walletConnected;
-    syncWalletCards();
-    showToast(walletConnected ? '钱包已连接' : '钱包已断开', walletConnected ? '已连接 0x887…3F2a · Monad 测试网' : '再次点击钱包卡片即可连接。', walletConnected ? 'success' : 'warning');
+  async function toggleWallet() {
+    try {
+      const wallet = walletConnected
+        ? await getAdapter().disconnectWallet()
+        : await getAdapter().connectWallet();
+      walletConnected = Boolean(wallet.connected);
+      if (wallet.address) walletAddress = wallet.address;
+      syncWalletCards();
+      showToast(walletConnected ? '钱包已连接' : '钱包已断开', walletConnected ? `已连接 ${shortValue(walletAddress)} · Monad 测试网` : '再次点击钱包卡片即可连接。', walletConnected ? 'success' : 'warning');
+    } catch (error) {
+      showToast('钱包状态没有改变', error.message || '请检查钱包后重试。', 'warning');
+    }
   }
 
   document.querySelectorAll('.wallet-card').forEach(card => {
@@ -1524,53 +1569,77 @@
   });
   syncWalletCards();
 
-  function ensureWallet() {
+  async function ensureWallet() {
     if (walletConnected) return true;
-    walletConnected = true;
+    const wallet = await getAdapter().connectWallet();
+    walletConnected = Boolean(wallet.connected);
+    if (wallet.address) walletAddress = wallet.address;
     syncWalletCards();
-    showToast('钱包已连接', '演示钱包已连接到 Monad 测试网。', 'success');
+    showToast('钱包已连接', `已连接 ${shortValue(walletAddress)} · Monad 测试网`, 'success');
     return true;
   }
 
   function resetTxSteps() {
-    txTimers.forEach(clearTimeout);
-    txTimers = [];
-    document.querySelectorAll('.tx-step').forEach(step => step.classList.remove('active', 'done'));
+    document.querySelectorAll('.tx-step').forEach((step, index) => {
+      step.classList.remove('active', 'done', 'failed');
+      step.querySelector('.step-dot').textContent = String(index + 1);
+    });
+    txMeta.hidden = true;
+    txError.hidden = true;
+    txError.textContent = '';
     txClose.disabled = true;
   }
 
-  function runTransaction(title, description, onConfirmed) {
-    ensureWallet();
+  function renderTxPhase(phase, detail = {}) {
+    const phaseOrder = ['PREPARING', 'WAITING_WALLET', 'SUBMITTED', 'CONFIRMED'];
+    const phaseToStep = { PREPARING: 'prepare', WAITING_WALLET: 'wallet', SUBMITTED: 'submitted', CONFIRMED: 'confirmed' };
+    const labels = {
+      PREPARING: '正在获取最新的链上参数。',
+      WAITING_WALLET: '请在钱包中确认，ProofNote 不会替你签名。',
+      SUBMITTED: '交易已广播，正在等待 Monad 确认。',
+      CONFIRMED: '交易已确认，页面状态已经同步。'
+    };
+    const currentIndex = phaseOrder.indexOf(phase);
+    document.querySelectorAll('.tx-step').forEach((step, index) => {
+      step.classList.toggle('done', index < currentIndex || phase === 'CONFIRMED');
+      step.classList.toggle('active', index === currentIndex && phase !== 'CONFIRMED');
+      step.querySelector('.step-dot').textContent = index < currentIndex || phase === 'CONFIRMED' ? '✓' : String(index + 1);
+    });
+    document.getElementById('tx-description').textContent = labels[phase] || labels.PREPARING;
+    if (detail.txHash) {
+      txHash.textContent = `Tx ${shortValue(detail.txHash, 10, 6)}`;
+      txExplorer.href = detail.explorerUrl || '#';
+      txMeta.hidden = false;
+    }
+  }
+
+  async function runTransaction(title, description, operation, onConfirmed) {
     resetTxSteps();
     document.getElementById('tx-title').textContent = title;
     document.getElementById('tx-description').textContent = description;
     txOverlay.classList.add('open');
-    const steps = [...document.querySelectorAll('.tx-step')];
-    const labels = [
-      '正在获取最新的链上参数。',
-      '请在钱包中确认，ProofNote 不会替你签名。',
-      '交易已广播，正在等待 Monad 确认。',
-      '交易已确认，页面状态已经同步。'
-    ];
-    steps.forEach((step, index) => {
-      txTimers.push(setTimeout(() => {
-        steps.forEach((item, itemIndex) => {
-          item.classList.toggle('done', itemIndex < index);
-          item.classList.toggle('active', itemIndex === index);
-          item.querySelector('.step-dot').textContent = itemIndex < index ? '✓' : String(itemIndex + 1);
-        });
-        document.getElementById('tx-description').textContent = labels[index];
-        if (index === steps.length - 1) {
-          txTimers.push(setTimeout(() => {
-            steps[index].classList.remove('active');
-            steps[index].classList.add('done');
-            steps[index].querySelector('.step-dot').textContent = '✓';
-            txClose.disabled = false;
-            if (onConfirmed) onConfirmed();
-          }, 500));
-        }
-      }, index * 700));
-    });
+    try {
+      await ensureWallet();
+      renderTxPhase('PREPARING');
+      const result = await operation({ onPhase: renderTxPhase });
+      renderTxPhase('CONFIRMED', result);
+      txClose.disabled = false;
+      if (onConfirmed) onConfirmed(result);
+      return result;
+    } catch (error) {
+      const active = document.querySelector('.tx-step.active') || document.querySelector('.tx-step[data-step="wallet"]');
+      active.classList.remove('active');
+      active.classList.add('failed');
+      active.querySelector('.step-dot').textContent = '!';
+      document.getElementById('tx-description').textContent = error.code === 'USER_REJECTED' ? '你取消了钱包请求。' : '这笔操作没有完成。';
+      txError.textContent = error.code === 'USER_REJECTED'
+        ? '没有产生链上交易。你可以关闭窗口后重新发起。'
+        : (error.userMessage || error.message || '请检查网络、余额和合约状态后重试。');
+      txError.hidden = false;
+      txClose.disabled = false;
+      showToast('操作未完成', txError.textContent, 'warning');
+      return null;
+    }
   }
 
   txClose.addEventListener('click', () => txOverlay.classList.remove('open'));
@@ -1587,14 +1656,19 @@
     const body = document.getElementById('note-body-input').value.trim();
     if (!title || !body) { showToast('还不能发布', '请填写标题和正文摘要。', 'warning'); return; }
     composerOverlay.classList.remove('open');
-    runTransaction('发布并锚定笔记', '正在计算内容哈希并准备 Ownership Anchor。', () => {
+    runTransaction(
+      '发布并锚定笔记',
+      '正在计算内容哈希并准备 Ownership Anchor。',
+      (context) => getAdapter().publishNote({ title, body, monetized: document.getElementById('monetized-toggle').checked }, context),
+      () => {
       document.querySelectorAll('h1.title').forEach(node => {
         if (node.textContent.includes('公开构建')) node.textContent = title;
       });
       document.querySelectorAll('.article .lead').forEach(node => node.textContent = body);
       showToast('笔记已发布', '内容哈希已锚定在 Monad。', 'success');
       showScreen('s4', '首页');
-    });
+      }
+    );
   });
 
   const supportMode = document.getElementById('support-mode');
@@ -1604,9 +1678,9 @@
     document.getElementById('support-rate-label').textContent = isTip ? '打赏金额' : '速率';
     document.getElementById('support-rate-value').textContent = isTip ? '0.0500 MON' : '0.001 MON/s';
     document.getElementById('support-budget-row').style.display = isTip ? 'none' : 'flex';
-    document.getElementById('creator-quote').textContent = isTip ? '0.0490 MON' : '0.0199 MON';
-    document.getElementById('protocol-quote').textContent = isTip ? '0.0010 MON' : '0.0001 MON';
-    document.getElementById('total-quote').textContent = isTip ? '0.0500 MON' : '0.0200 MON';
+    document.getElementById('creator-quote').textContent = isTip ? '0.0490 MON' : '0.1990 MON';
+    document.getElementById('protocol-quote').textContent = '0.0010 MON';
+    document.getElementById('total-quote').textContent = isTip ? '0.0500 MON' : '0.2000 MON';
     document.getElementById('start-support').textContent = isTip ? '发送打赏' : '开始持续支持';
     document.getElementById('start-support').dataset.mode = mode;
   }
@@ -1616,7 +1690,7 @@
     button.addEventListener('click', () => setSupportMode(index === 0 ? 'tip' : 'stream'));
   });
 
-  const stream = { status: 'active', amount: 0.007, rate: 0.001, budget: 0.02, lastTick: performance.now() };
+  const stream = { status: 'active', amount: 0.007, rate: 0.001, budget: 0.2, lastTick: performance.now() };
   function renderStream() {
     const remaining = Math.max(0, stream.budget - stream.amount);
     const seconds = stream.rate > 0 ? Math.ceil(remaining / stream.rate) : 0;
@@ -1648,10 +1722,20 @@
   document.getElementById('start-support').addEventListener('click', event => {
     const mode = event.currentTarget.dataset.mode || 'stream';
     if (mode === 'tip') {
-      runTransaction('发送一次性打赏', '正在获取最新分账报价。', () => showToast('打赏已确认', '0.0490 MON 已计入创作者收入。', 'success'));
+      runTransaction(
+        '发送一次性打赏',
+        '正在获取最新分账报价。',
+        (context) => getAdapter().sendTip({ noteId: 'note-demo-001', amountMON: '0.0500' }, context),
+        () => showToast('打赏已确认', '0.0490 MON 已计入创作者收入。', 'success')
+      );
       return;
     }
-    runTransaction('创建持续支持流', '正在准备 0.001 MON/s、最大预算 0.0200 MON 的支持流。', () => {
+    runTransaction(
+      '创建持续支持流',
+      '正在准备 0.001 MON/s、最大预算 0.2000 MON 的支持流。',
+      (context) => getAdapter().createStream({ noteId: 'note_01', rateMONPerSecond: '0.001', budgetMON: '0.2000' }, context),
+      (result) => {
+      activeStreamId = result.streamId || activeStreamId;
       stream.amount = 0;
       stream.status = 'active';
       stream.lastTick = performance.now();
@@ -1659,23 +1743,35 @@
       renderStream();
       showScreen('s1', '首页');
       showToast('持续支持已开始', '金额会在本地平滑增长，并在新区块时同步。', 'success');
-    });
+      }
+    );
   });
 
   document.getElementById('pause-stream').addEventListener('click', () => {
     if (stream.status === 'settled') return;
     const next = stream.status === 'paused' ? 'active' : 'paused';
-    runTransaction(next === 'paused' ? '暂停持续支持' : '恢复持续支持', '状态变化需要钱包确认。', () => {
+    runTransaction(
+      next === 'paused' ? '暂停持续支持' : '恢复持续支持',
+      '状态变化需要钱包确认。',
+      (context) => next === 'paused'
+        ? getAdapter().pauseStream({ streamId: activeStreamId }, context)
+        : getAdapter().resumeStream({ streamId: activeStreamId }, context),
+      () => {
       stream.status = next;
       stream.lastTick = performance.now();
       renderStream();
       showToast(next === 'paused' ? '已暂停' : '已恢复', next === 'paused' ? '累计金额已停止增长。' : '累计金额将继续增长。', 'success');
-    });
+      }
+    );
   });
 
   document.getElementById('settle-stream').addEventListener('click', () => {
     if (stream.status === 'settled') return;
-    runTransaction('停止并结算', '正在计算创作者收入、协议费用和未使用预算。', () => {
+    runTransaction(
+      '停止并结算',
+      '正在计算创作者收入、协议费用和未使用预算。',
+      (context) => getAdapter().stopAndSettle({ streamId: activeStreamId }, context),
+      () => {
       stream.status = 'settled';
       renderStream();
       const fee = stream.amount * 0.005;
@@ -1685,27 +1781,38 @@
       box.hidden = false;
       box.innerHTML = `<div class="row"><span class="k">创作者收入</span><span class="v">${creator.toFixed(6)} MON</span></div><div class="row"><span class="k">协议费用</span><span class="v">${fee.toFixed(6)} MON</span></div><div class="row"><span class="k">粉丝退回</span><span class="v">${refund.toFixed(6)} MON</span></div>`;
       showToast('结算完成', '资金拆分已在 Monad 确认。', 'success');
-    });
+      }
+    );
   });
 
   document.getElementById('view-streams').addEventListener('click', () => showScreen('s1', '首页'));
   document.getElementById('claim-income').addEventListener('click', event => {
     const button = event.currentTarget;
-    runTransaction('领取创作者收入', '领取 18.4200 MON 至当前钱包。', () => {
+    runTransaction(
+      '领取创作者收入',
+      '领取 18.4200 MON 至当前钱包。',
+      (context) => getAdapter().claimCreatorCredit({ amountMON: '18.4200' }, context),
+      () => {
       document.getElementById('claimable-amount').textContent = '0.0000 MON';
       button.disabled = true;
       button.textContent = '已领取';
       showToast('领取完成', '18.4200 MON 已发送到创作者钱包。', 'success');
-    });
+      }
+    );
   });
 
   document.getElementById('attest-impact').addEventListener('click', event => {
     const button = event.currentTarget;
-    runTransaction('证明我参与过', '这是一条参与者证明，不代表平台对事实作绝对判断。', () => {
+    runTransaction(
+      '证明我参与过',
+      '这是一条参与者证明，不代表平台对事实作绝对判断。',
+      (context) => getAdapter().attestImpact({ claimId: 'PN-IMP-00428' }, context),
+      () => {
       button.disabled = true;
       button.textContent = '已提交参与证明';
       showToast('证明已记录', '你的参与声明已锚定在 Monad。', 'success');
-    });
+      }
+    );
   });
   document.getElementById('challenge-impact').addEventListener('click', () => showToast('质疑入口', '产品 P1 将接入质疑理由、证据和处理状态。', 'warning'));
 
@@ -1717,11 +1824,16 @@
   });
   document.getElementById('attest-ledger').addEventListener('click', event => {
     const button = event.currentTarget;
-    runTransaction('证明我的贡献', '正在为公开账本添加社区证明。', () => {
+    runTransaction(
+      '证明我的贡献',
+      '正在为公开账本添加社区证明。',
+      (context) => getAdapter().attestLedger({ claimId: 'PN-IMP-00428' }, context),
+      () => {
       button.disabled = true;
       button.textContent = '贡献已证明';
       showToast('贡献已记录', '公开账本现在包含你的证明。', 'success');
-    });
+      }
+    );
   });
 
   document.querySelectorAll('.ownership').forEach(card => {
@@ -1748,9 +1860,46 @@
     }
   }));
 
+  window.ProofNoteUI = Object.freeze({
+    version: 'demo-a-1.0',
+    useAdapter(nextAdapter) {
+      const missing = window.ProofNoteAdapterContract.requiredMethods.filter(method => typeof nextAdapter?.[method] !== 'function');
+      if (missing.length) throw new Error(`ProofNoteAdapter 缺少方法：${missing.join(', ')}`);
+      window.ProofNoteAdapter = nextAdapter;
+      showToast('数据适配器已切换', `当前模式：${nextAdapter.mode || 'real'}`, 'success');
+    },
+    setWalletState(wallet) {
+      walletConnected = Boolean(wallet.connected);
+      if (wallet.address) walletAddress = wallet.address;
+      syncWalletCards();
+    },
+    setStreamSnapshot(snapshot) {
+      if (snapshot.streamId) activeStreamId = String(snapshot.streamId);
+      if (snapshot.accruedMON !== undefined) stream.amount = Number(snapshot.accruedMON);
+      if (snapshot.rateMONPerSecond !== undefined) stream.rate = Number(snapshot.rateMONPerSecond);
+      if (snapshot.budgetMON !== undefined) stream.budget = Number(snapshot.budgetMON);
+      if (snapshot.status) stream.status = String(snapshot.status).toLowerCase();
+      stream.lastTick = performance.now();
+      renderStream();
+    },
+    showTransaction: runTransaction,
+    showToast,
+    showScreen,
+    getDemoState() {
+      return {
+        wallet: { connected: walletConnected, address: walletAddress },
+        stream: { ...stream, streamId: activeStreamId },
+        adapterMode: getAdapter().mode || 'real'
+      };
+    }
+  });
+
+  getAdapter().getWallet().then(wallet => window.ProofNoteUI.setWalletState(wallet)).catch(() => syncWalletCards());
+
   setSupportMode('stream');
   setActiveNav('首页');
 </script>
+<script type="module" src="./proofnote-web3-real-bridge.mjs"></script>
 
 </body>
 </html>

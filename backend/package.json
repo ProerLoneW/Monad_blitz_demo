@@ -17,10 +17,13 @@
     "test": "tsx packages/hash-utils/test/run.ts",
     "db:push": "tsx packages/db/scripts/push.ts",
     "dev:pg": "tsx scripts/dev-pg.ts",
+    "check:wallets": "tsx scripts/check-wallets.ts",
+    "seed": "tsx scripts/seed-demo.ts",
     "smoke": "tsx scripts/smoke.ts"
   },
   "devDependencies": {
     "@types/node": "^20.17.0",
+    "drizzle-orm": "^0.38.0",
     "embedded-postgres": "18.4.0-beta.17",
     "fastify": "^5.2.0",
     "tsx": "^4.19.2",

@@ -142,6 +142,8 @@ export type Note = {
   ownership: NoteOwnership;
   value?: NoteValueSummary;
   impact?: ImpactSummary | null;
+  /** type === 'CAMPAIGN' 时非空：前端凭此跳转 Transparency 页 */
+  campaignId?: string | null;
   createdAt: string;
   publishedAt?: string | null;
 };

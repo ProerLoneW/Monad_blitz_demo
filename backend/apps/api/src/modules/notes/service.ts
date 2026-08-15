@@ -213,6 +213,15 @@ export async function assembleNote(db: Db, noteRow: typeof schema.notes.$inferSe
           },
         }
       : null,
+    campaignId: noteRow.type === 'CAMPAIGN'
+      ? ((
+          await db
+            .select({ id: schema.campaignMetadata.id })
+            .from(schema.campaignMetadata)
+            .where(eq(schema.campaignMetadata.noteId, noteRow.id))
+            .limit(1)
+        )[0]?.id ?? null)
+      : null,
     createdAt: noteRow.createdAt.toISOString(),
     publishedAt: noteRow.publishedAt?.toISOString() ?? null,
   };

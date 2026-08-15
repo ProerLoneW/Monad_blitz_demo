@@ -4,8 +4,8 @@
  * 适用于本机无 Docker / 无 Postgres 的开发与冒烟环境。
  */
 process.env.LOG_LEVEL ??= 'warn';
-import { mkdirSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { mkdirSync, existsSync } from 'node:fs';
+import { join, resolve } from 'node:path';
 import EmbeddedPostgres from 'embedded-postgres';
 
 const port = Number(process.env.EMBEDDED_PG_PORT ?? 5432);
@@ -21,7 +21,11 @@ const pg = new EmbeddedPostgres({
 });
 
 async function main() {
-  await pg.initialise();
+  // 数据目录已初始化（重复启动）则跳过 initdb，直接启动既有实例
+  const alreadyInitialized = existsSync(join(dataDir, 'PG_VERSION'));
+  if (!alreadyInitialized) {
+    await pg.initialise();
+  }
   await pg.start();
   try {
     await pg.createDatabase('proofnote');

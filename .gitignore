@@ -1,1 +1,5 @@
 thought_stream_docs/*
+.DS_Store
+*.md
+!*/README.md
+!README.md

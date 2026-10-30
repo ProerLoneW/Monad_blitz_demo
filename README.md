@@ -201,15 +201,6 @@ ProofNote
 ✅ 演示模式
 ✅ Web3 接入层
 
-功能演示
-
-建议在此补充：
-
-* 产品首页截图
-* 持续支持流操作截图
-* 创作者收入页面截图
-* Impact Evidence 页面截图
-
 Live Demo: Coming Soon
 
 GitHub Repository: https://github.com/ProerLoneW/Monad_blitz_demo

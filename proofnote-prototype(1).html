@@ -1,0 +1,1756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ProofNote — 原型</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #fbfaf7;
+    --surface: #ffffff;
+    --ink: #0e0d0b;
+    --ink-2: #1a1916;
+    --muted: #6b6a66;
+    --muted-2: #9a9893;
+    --line: #eceae3;
+    --line-2: #e3e0d8;
+    --accent: #6e54e0;       /* Monad purple */
+    --accent-2: #8a73ff;
+    --accent-soft: #efeaff;
+    --accent-soft-2: #f5f2ff;
+    --green: #16a34a;
+    --green-soft: #e7f6ec;
+    --red: #d23f3f;
+    --red-soft: #fdecec;
+    --orange: #e07a1a;
+    --orange-soft: #fdebcf;
+    --pill-yellow: #f1e89e;
+    --sidebar-bg: #f4f1ea;
+    --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    --serif: "Source Serif 4", "Iowan Old Style", Georgia, "Times New Roman", serif;
+    --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  button { font-family: inherit; cursor: pointer; }
+  button:disabled { cursor: not-allowed; opacity: .52; }
+  button:focus-visible, a:focus-visible, .wallet-card:focus-visible, .ownership:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+
+  /* ===== Top switcher bar ===== */
+  .switcher {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(251,250,247,0.92);
+    backdrop-filter: saturate(180%) blur(8px);
+    border-bottom: 1px solid var(--line);
+    padding: 10px 24px;
+    display: flex; align-items: center; gap: 16px;
+  }
+  .switcher[hidden] { display: none; }
+  .switcher .brand {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--ink);
+    margin-right: 8px;
+  }
+  .switcher .brand small { color: var(--accent); font-weight: 500; }
+  .switcher .tabs {
+    display: flex; gap: 4px; flex-wrap: wrap;
+  }
+  .switcher .tab {
+    border: 1px solid var(--line-2);
+    background: var(--surface);
+    color: var(--ink-2);
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12.5px;
+    font-weight: 500;
+    transition: all .15s ease;
+  }
+  .switcher .tab:hover { border-color: var(--accent-2); color: var(--accent); }
+  .switcher .tab.active,
+  .screen-radio:checked ~ .switcher label.tab[for] {
+    background: var(--ink);
+    color: #fff;
+    border-color: var(--ink);
+  }
+  .switcher .meta {
+    margin-left: auto;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  /* ===== Screen switching via radio buttons (no JS needed) ===== */
+  .screen-radio {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+    width: 0; height: 0;
+  }
+  .screen { display: none; }
+  .screen.active { display: block; }
+  .layout {
+    display: grid;
+    grid-template-columns: 220px 1fr 320px;
+    min-height: 100vh;
+  }
+  .layout.no-right { grid-template-columns: 220px 1fr; }
+  .layout.no-left { grid-template-columns: 1fr 320px; }
+  .layout.full { grid-template-columns: 1fr; }
+
+  /* ===== Sidebar ===== */
+  .sidebar {
+    background: var(--sidebar-bg);
+    border-right: 1px solid var(--line);
+    padding: 24px 18px;
+    display: flex; flex-direction: column;
+  }
+  .logo {
+    font-family: var(--serif);
+    font-weight: 700;
+    font-size: 26px;
+    color: var(--ink);
+    margin: 4px 0 2px;
+  }
+  .logo small {
+    display: block;
+    font-family: var(--sans);
+    font-weight: 500;
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.2px;
+    margin-top: 2px;
+  }
+  .nav { margin-top: 28px; display: flex; flex-direction: column; gap: 2px; }
+  .nav a {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px;
+    color: var(--ink-2);
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 14px;
+    text-decoration: none;
+  }
+  .nav a:hover { background: rgba(0,0,0,0.04); }
+  .nav a.active { background: var(--surface); box-shadow: 0 0 0 1px var(--line-2) inset; }
+  .nav svg { width: 18px; height: 18px; opacity: .85; }
+  .wallet-card {
+    margin-top: auto;
+    border: 1px solid var(--line-2);
+    background: var(--surface);
+    border-radius: 10px;
+    padding: 10px 12px;
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: border-color .16s ease, transform .16s ease;
+  }
+  .wallet-card:hover { border-color: var(--accent-2); transform: translateY(-1px); }
+  .wallet-card.disconnected .dot { background: var(--muted-2); box-shadow: none; }
+  .wallet-card .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 0 3px var(--green-soft);
+  }
+  .wallet-card .addr { font-family: var(--mono); color: var(--ink); font-weight: 500; }
+  .wallet-card .net { color: var(--muted); margin-left: auto; }
+
+  /* ===== Main column ===== */
+  .main {
+    padding: 36px 56px 80px;
+    max-width: 760px;
+    width: 100%;
+    margin: 0 auto;
+  }
+  .main.wide { max-width: 920px; }
+  .crumb {
+    font-size: 11px;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  h1.title {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 36px;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    margin: 0 0 18px;
+  }
+  h2.h {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 22px;
+    margin: 28px 0 12px;
+  }
+  p { color: var(--ink-2); }
+  .lede { color: var(--muted); font-size: 15px; max-width: 640px; margin: 0 0 24px; }
+
+  /* Author row */
+  .author {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 22px;
+  }
+  .avatar {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: #d8d3c8;
+    background-size: cover; background-position: center;
+    flex-shrink: 0;
+  }
+  .avatar.lg { width: 132px; height: 132px; }
+  .author .meta-line { font-size: 13px; color: var(--muted); }
+  .author .name { font-weight: 600; color: var(--ink); font-size: 15px; }
+  .author .handle { color: var(--muted); }
+
+  .tag {
+    display: inline-flex; align-items: center;
+    font-size: 10.5px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 4px 8px;
+    border-radius: 4px;
+    background: var(--pill-yellow);
+    color: #5a4d12;
+  }
+  .tag.impact { background: #f6d6c0; color: #8a3a14; }
+  .tag.active-tag { background: var(--green-soft); color: #145f2c; }
+  .tag.verified { background: var(--green-soft); color: #145f2c; }
+
+  .article p { margin: 0 0 14px; }
+  .article p.lead { font-size: 15.5px; }
+
+  .hero-img {
+    width: 100%;
+    height: 320px;
+    border-radius: 4px;
+    background: #c7c1b4;
+    background-size: cover; background-position: center;
+    margin: 18px 0 22px;
+  }
+  .hero-img.short { height: 260px; }
+  .hero-img.tall { height: 380px; }
+
+  .action-row { display: flex; gap: 10px; margin: 6px 0 18px; }
+  .btn {
+    border: 1px solid var(--ink);
+    background: var(--surface);
+    color: var(--ink);
+    padding: 9px 18px;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 6px;
+  }
+  .btn.primary { background: var(--ink); color: #fff; }
+  .btn.outline-red { border-color: var(--red); color: var(--red); background: var(--surface); }
+  .btn.outline-red:hover { background: var(--red-soft); }
+  .btn.block { width: 100%; padding: 12px; font-weight: 600; }
+  .btn.danger { background: var(--surface); color: var(--red); border-color: var(--red); }
+  .btn.lg { padding: 12px 22px; font-size: 14px; }
+
+  .ownership {
+    border: 1px solid var(--accent-soft);
+    background: var(--accent-soft-2);
+    border-radius: 8px;
+    padding: 12px 16px;
+    display: flex; align-items: center; gap: 12px;
+    color: var(--accent);
+    font-size: 13px;
+    cursor: pointer;
+    flex-wrap: wrap;
+  }
+  .ownership-detail {
+    display: none;
+    flex-basis: 100%;
+    margin: 8px 0 0 26px;
+    padding-top: 10px;
+    border-top: 1px solid #ddd5ff;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 11px;
+    line-height: 1.7;
+  }
+  .ownership.expanded .ownership-detail { display: block; }
+  .ownership.expanded .chev { transform: rotate(180deg); }
+  .ownership .chev { color: var(--muted); }
+  .ownership .label { color: var(--ink); font-weight: 500; }
+  .ownership .right { margin-left: auto; color: var(--muted); font-size: 12.5px; }
+
+  /* ===== Right column panels ===== */
+  .right {
+    border-left: 1px solid var(--line);
+    padding: 28px 22px;
+    background: var(--bg);
+  }
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 18px;
+    margin-bottom: 14px;
+  }
+  .panel h3 {
+    font-family: var(--serif);
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 12px;
+  }
+  .panel p.help { font-size: 12.5px; color: var(--muted); margin: 0 0 12px; }
+  .row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 0;
+    font-size: 13px;
+  }
+  .row + .row { border-top: 1px solid var(--line); }
+  .row .k { color: var(--muted); }
+  .row .v { font-family: var(--mono); font-weight: 500; }
+
+  .progress {
+    height: 6px; background: var(--line); border-radius: 999px;
+    overflow: hidden; margin: 4px 0 12px;
+  }
+  .progress .bar {
+    height: 100%; background: var(--green);
+    width: 35%;
+  }
+  .amount {
+    font-family: var(--mono);
+    font-size: 28px; font-weight: 600;
+    letter-spacing: -0.01em;
+    margin: 4px 0 6px;
+  }
+  .amount .unit { font-size: 16px; color: var(--muted); margin-left: 4px; }
+
+  .panel-actions { display: flex; gap: 8px; margin-top: 14px; }
+  .panel-actions .btn { flex: 1; }
+
+  /* ===== Interaction feedback ===== */
+  .toast-stack {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    z-index: 100;
+    display: grid;
+    gap: 10px;
+    width: min(360px, calc(100vw - 32px));
+  }
+  .toast {
+    background: var(--ink);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,.14);
+    border-radius: 10px;
+    padding: 12px 14px;
+    box-shadow: 0 18px 50px rgba(14,13,11,.2);
+    animation: toast-in .22s ease-out;
+    font-size: 12.5px;
+  }
+  .toast strong { display: block; margin-bottom: 2px; font-size: 13px; }
+  .toast.success { background: #124d2a; }
+  .toast.warning { background: #6f4514; }
+  @keyframes toast-in { from { opacity: 0; transform: translateY(8px); } }
+
+  .tx-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(14,13,11,.34);
+    backdrop-filter: blur(4px);
+  }
+  .tx-overlay.open { display: flex; }
+  .tx-dialog {
+    width: min(430px, 100%);
+    background: var(--surface);
+    border: 1px solid var(--line-2);
+    border-radius: 14px;
+    padding: 24px;
+    box-shadow: 0 30px 90px rgba(14,13,11,.22);
+  }
+  .tx-dialog h3 { margin: 0 0 6px; font-family: var(--serif); font-size: 24px; }
+  .tx-dialog p { margin: 0 0 18px; color: var(--muted); font-size: 13px; }
+  .tx-step {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 0;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+  }
+  .tx-step .step-dot {
+    width: 20px;
+    height: 20px;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--line-2);
+    border-radius: 50%;
+    font-size: 10px;
+  }
+  .tx-step.active { color: var(--ink); font-weight: 600; }
+  .tx-step.active .step-dot { border-color: var(--accent); color: var(--accent); animation: pulse 1s infinite; }
+  .tx-step.done { color: var(--green); }
+  .tx-step.done .step-dot { background: var(--green-soft); border-color: var(--green); }
+  @keyframes pulse { 50% { box-shadow: 0 0 0 5px var(--accent-soft); } }
+  .tx-actions { display: flex; justify-content: flex-end; margin-top: 18px; }
+  .form-field { display: grid; gap: 6px; margin: 14px 0; }
+  .form-field label { color: var(--muted); font-size: 12px; font-weight: 600; }
+  .form-field input, .form-field textarea {
+    width: 100%;
+    border: 1px solid var(--line-2);
+    border-radius: 8px;
+    padding: 10px 12px;
+    background: var(--bg);
+    color: var(--ink);
+    font: inherit;
+    resize: vertical;
+  }
+  .form-field input:focus, .form-field textarea:focus {
+    outline: 2px solid var(--accent-soft);
+    border-color: var(--accent);
+  }
+
+  .settlement-box {
+    margin-top: 14px;
+    padding: 12px;
+    border: 1px solid var(--accent-soft);
+    border-radius: 8px;
+    background: var(--accent-soft-2);
+  }
+  .settlement-box[hidden] { display: none; }
+  .evidence-list.flash { animation: evidence-flash 1.2s ease; }
+  @keyframes evidence-flash { 40% { box-shadow: 0 0 0 5px #fdebcf; } }
+
+  /* 锚定在 Monad panel */
+  .anchor {
+    border: 1px solid var(--accent-soft);
+    background: var(--accent-soft-2);
+    border-radius: 10px;
+    padding: 14px 16px;
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .anchor .logo-mark {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 14px;
+    flex-shrink: 0;
+  }
+  .anchor .text { font-size: 13px; }
+  .anchor .text .title { color: var(--accent); font-weight: 600; }
+  .anchor .text .tx { color: var(--muted); font-family: var(--mono); font-size: 12px; }
+  .anchor .text a { display: inline-block; margin-top: 4px; }
+  .anchor .check { margin-left: auto; color: var(--green); font-weight: 700; }
+
+  /* Segmented tabs */
+  .segmented {
+    display: grid; grid-template-columns: 1fr 1fr;
+    background: var(--line);
+    border-radius: 8px;
+    padding: 3px;
+    margin-bottom: 14px;
+  }
+  .segmented button {
+    border: 0; background: transparent;
+    padding: 8px;
+    font-size: 13px; font-weight: 500;
+    border-radius: 6px;
+    color: var(--muted);
+  }
+  .segmented button.active { background: var(--ink); color: #fff; }
+
+  /* ===== Impact claim table ===== */
+  .claim-table {
+    border: 1px solid var(--line-2);
+    border-radius: 6px;
+    background: var(--surface);
+    border-left: 3px solid var(--orange);
+    margin: 16px 0 22px;
+  }
+  .claim-table .row { padding: 10px 18px; }
+  .claim-table .row .k { width: 110px; }
+  .claim-table .row .v { font-family: inherit; }
+
+  /* Evidence grid */
+  .evidence-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    margin-top: 10px;
+  }
+  .ev-card {
+    border: 1px solid var(--line-2);
+    background: var(--surface);
+    border-radius: 8px;
+    padding: 12px;
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .ev-thumb {
+    width: 64px; height: 64px; border-radius: 6px;
+    background: #d8d3c8;
+    background-size: cover; background-position: center;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--muted);
+  }
+  .ev-card .meta { font-size: 12px; color: var(--muted); }
+  .ev-card .ev-title { font-weight: 600; font-size: 13.5px; display: flex; align-items: center; gap: 6px; }
+  .ev-card .hash { font-family: var(--mono); font-size: 11.5px; color: var(--ink-2); margin-top: 4px; }
+  .pill-hash {
+    display: inline-flex; align-items: center; gap: 4px;
+    color: #145f2c; font-size: 11.5px; font-weight: 500;
+    background: var(--green-soft);
+    padding: 2px 6px; border-radius: 4px;
+    margin-top: 4px;
+  }
+  .pill-hash::before {
+    content: ""; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--green);
+  }
+
+  /* Verification ladder */
+  .ladder { display: flex; flex-direction: column; gap: 14px; }
+  .ladder .step {
+    display: grid; grid-template-columns: 28px 1fr;
+    gap: 12px; align-items: flex-start;
+    position: relative;
+  }
+  .ladder .step:not(:last-child)::after {
+    content: ""; position: absolute;
+    left: 13px; top: 24px; bottom: -16px;
+    width: 2px;
+    background: var(--line-2);
+  }
+  .ladder .step.unreached:not(:last-child)::after {
+    background: repeating-linear-gradient(to bottom, var(--line-2) 0 4px, transparent 4px 8px);
+  }
+  .ladder .dot {
+    width: 28px; height: 28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--ink); color: #fff;
+    flex-shrink: 0;
+  }
+  .ladder .dot.amber { background: #f4b87a; }
+  .ladder .dot.lilac { background: var(--accent-soft-2); color: var(--accent); border: 1px solid var(--accent); }
+  .ladder .dot.empty { background: var(--surface); border: 2px dashed var(--line-2); color: var(--muted-2); }
+  .ladder .dot.empty svg { opacity: 0; }
+  .ladder .l { font-weight: 600; font-size: 13px; }
+  .ladder .desc { font-size: 12.5px; color: var(--muted); }
+  .ladder .step.unreached .l { color: var(--muted-2); }
+  .ladder .step.unreached .desc { color: var(--muted-2); }
+
+  .summary {
+    font-size: 12.5px; color: var(--muted);
+    border-top: 1px solid var(--line);
+    padding-top: 12px; margin-top: 14px;
+  }
+
+  /* ===== Profile page ===== */
+  .profile-head {
+    display: grid; grid-template-columns: 160px 1fr auto;
+    gap: 28px; align-items: center;
+    margin-bottom: 28px;
+  }
+  .profile-head .avatar.lg { width: 160px; height: 160px; }
+  .profile-head h1 { font-family: var(--serif); font-size: 32px; margin: 0; }
+  .profile-head .handle { color: var(--muted); }
+  .profile-head .addr { font-family: var(--mono); font-size: 12.5px; color: var(--ink-2); margin: 6px 0; }
+  .profile-head .bio { color: var(--muted); font-size: 13.5px; max-width: 520px; }
+
+  .stat-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+    margin-bottom: 16px;
+  }
+  .stat-card {
+    border: 1px solid var(--line-2);
+    border-radius: 10px;
+    padding: 18px;
+    background: var(--surface);
+  }
+  .stat-card .label {
+    font-size: 11px; font-weight: 700; letter-spacing: 1.4px;
+    text-transform: uppercase; color: var(--accent);
+    margin-bottom: 14px;
+  }
+  .stat-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 8px 0;
+  }
+  .stat-row + .stat-row { border-top: 1px solid var(--line); }
+  .stat-row .icon {
+    width: 30px; height: 30px; border-radius: 6px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .stat-row .icon.amber { background: #fdedd3; color: var(--orange); }
+  .stat-row .icon.green { background: var(--green-soft); color: var(--green); }
+  .stat-row .v { font-family: var(--mono); font-weight: 600; font-size: 15px; }
+  .stat-row .k { color: var(--ink-2); }
+  .stat-card .foot {
+    font-size: 12px; color: var(--muted);
+    border-top: 1px solid var(--line);
+    margin-top: 10px; padding-top: 10px;
+  }
+
+  .grid-2 {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+    margin-bottom: 16px;
+  }
+  .block {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 18px;
+  }
+  .block h4 {
+    font-family: var(--serif); font-size: 16px; margin: 0 0 6px; font-weight: 600;
+  }
+  .block .row { font-size: 13px; }
+  .income-amt {
+    font-family: var(--mono); font-size: 22px; font-weight: 600;
+    margin: 4px 0 2px;
+  }
+  .muted { color: var(--muted); }
+  .stream-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 0; font-size: 13px;
+  }
+  .stream-row + .stream-row { border-top: 1px solid var(--line); }
+  .stream-row .name { flex: 1; color: var(--ink-2); }
+  .stream-row .rate { font-family: var(--mono); color: var(--muted); font-size: 12.5px; }
+  .stream-row .indicator { color: var(--green); font-size: 11px; font-weight: 600; }
+
+  .recent-card {
+    display: grid; grid-template-columns: 96px 1fr; gap: 14px;
+  }
+  .recent-card .thumb {
+    width: 96px; height: 96px; border-radius: 6px;
+    background-size: cover; background-position: center;
+    background-color: #c7c1b4;
+  }
+  .recent-card .meta-line { font-size: 12px; color: var(--muted); }
+  .recent-card h5 {
+    font-family: var(--serif); font-size: 16px; margin: 6px 0 4px; font-weight: 600;
+  }
+  .recent-card p { font-size: 12.5px; color: var(--muted); margin: 0; }
+
+  .manage-link {
+    margin-top: 10px; font-size: 12.5px;
+  }
+
+  /* ===== Open Ledger page ===== */
+  .ledger-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 22px;
+    margin-bottom: 18px;
+  }
+  .ledger-author {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 12px;
+  }
+  .ledger-author h2 {
+    font-family: var(--serif); font-size: 24px; margin: 0 0 6px; font-weight: 600;
+  }
+  .ledger-hero {
+    width: 100%; height: 240px; border-radius: 8px;
+    background: #c7c1b4;
+    background-size: cover; background-position: center;
+    margin: 10px 0 18px;
+  }
+  .impact-table {
+    border: 1px solid var(--line-2);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .impact-table .row {
+    padding: 10px 16px;
+  }
+  .impact-table .row .v { font-family: var(--sans); font-weight: 500; }
+  .evidence-list { display: flex; flex-direction: column; gap: 8px; }
+  .ev-list-item {
+    display: grid; grid-template-columns: 22px 22px 1fr auto auto;
+    gap: 10px; align-items: center;
+    padding: 10px 14px;
+    background: #fafaf6;
+    border-radius: 6px;
+    font-size: 13px;
+  }
+  .ev-list-item .ev-icon {
+    width: 22px; height: 22px; color: var(--muted);
+  }
+  .ev-list-item .check {
+    color: var(--green); font-weight: 700;
+  }
+  .ev-list-item .ev-sub { color: var(--muted); font-size: 12px; }
+  .ev-list-item .ev-date { color: var(--muted); font-family: var(--mono); font-size: 12px; }
+  .contributors { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .contrib {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 13px;
+  }
+  .contrib .avatar { width: 28px; height: 28px; }
+
+  .attest-stack {
+    display: flex; align-items: center;
+    margin-top: 4px;
+  }
+  .attest-stack .avatar {
+    width: 32px; height: 32px;
+    border: 2px solid var(--surface);
+    margin-left: -8px;
+  }
+  .attest-stack .avatar:first-child { margin-left: 0; }
+  .attest-stack .more {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--line);
+    color: var(--muted);
+    font-size: 12px; font-weight: 600;
+    display: flex; align-items: center; justify-content: center;
+    border: 2px solid var(--surface);
+    margin-left: -8px;
+  }
+  .verified-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    color: var(--green); font-weight: 600; font-size: 14px;
+  }
+  .verified-badge::before {
+    content: ""; width: 18px; height: 18px; border-radius: 50%;
+    background: var(--green-soft) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2316a34a' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><polyline points='20 6 9 17 4 12'/></svg>") center/12px no-repeat;
+  }
+
+  .why-open { font-size: 12.5px; color: var(--muted); }
+  .why-open h4 { font-family: var(--serif); color: var(--ink); font-size: 14px; margin: 0 0 6px; font-weight: 600; }
+
+  .timeline { position: relative; padding-left: 14px; }
+  .timeline::before {
+    content: ""; position: absolute; left: 3px; top: 4px; bottom: 4px;
+    width: 2px; background: var(--orange);
+  }
+  .timeline-item {
+    position: relative; padding: 0 0 14px 14px;
+    font-size: 13px;
+  }
+  .timeline-item::before {
+    content: ""; position: absolute; left: -16px; top: 6px;
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--orange);
+    box-shadow: 0 0 0 3px #fdf3e3;
+  }
+
+  /* Icons inline */
+  .ic { width: 16px; height: 16px; vertical-align: -3px; }
+  .ic.sm { width: 14px; height: 14px; }
+  .ic.lg { width: 20px; height: 20px; }
+
+  /* tiny utilities */
+  .gap-8 { gap: 8px; }
+  .center { display: flex; align-items: center; }
+  .small { font-size: 12px; }
+  .right-actions { display: flex; gap: 8px; }
+
+  /* Responsive (basic) */
+  @media (max-width: 1100px) {
+    .layout { grid-template-columns: 200px 1fr; }
+    .right { display: none; }
+    .main { padding: 28px 28px 60px; }
+  }
+  @media (max-width: 720px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .stat-grid, .grid-2, .evidence-grid { grid-template-columns: 1fr; }
+    .switcher { padding: 8px 12px; overflow-x: auto; }
+    .switcher .brand, .switcher .meta { display: none; }
+    .switcher .tabs { flex-wrap: nowrap; }
+    .switcher .tab { white-space: nowrap; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============================ TOP SWITCHER ============================ -->
+<div class="switcher" hidden aria-hidden="true">
+  <div class="brand">ProofNote <small>基于 Monad</small></div>
+  <div class="tabs" id="tabs">
+    <button class="tab active" data-target="s1">1 · 笔记 + 进行中的支持流</button>
+    <button class="tab" data-target="s2">2 · 公益声明</button>
+    <button class="tab" data-target="s3">3 · 个人主页</button>
+    <button class="tab" data-target="s4">4 · 笔记 + 支持面板</button>
+    <button class="tab" data-target="s5">5 · 公开账本</button>
+  </div>
+  <div class="meta">5 个屏幕 · 可交互原型</div>
+</div>
+
+<!-- ============================ SCREEN 1: Note + Live Stream ============================ -->
+<section class="screen" id="s1">
+  <div class="layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="logo">ProofNote<small>基于 Monad</small></div>
+      <nav class="nav">
+        <a href="#">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          首页
+        </a>
+        <a href="#" class="active">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M12 8v8M8 12h8"/></svg>
+          创建
+        </a>
+        <a href="#">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 6v6c0 5 3.5 9 8 10 4.5-1 8-5 8-10V6z"/></svg>
+          公益
+        </a>
+        <a href="#">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          个人主页
+        </a>
+      </nav>
+      <div class="wallet-card">
+        <span class="dot"></span>
+        <span class="addr">0x887…3F2a</span>
+        <span class="net">Monad 测试网</span>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+      <div class="author">
+        <div class="avatar" style="background-image:url('https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=160&h=160&fit=crop&crop=faces');"></div>
+        <div>
+          <div class="name">Alice Chen</div>
+          <div class="meta-line">@alice · 2 小时前</div>
+        </div>
+        <div style="margin-left:8px;"><span class="tag">已变现</span></div>
+      </div>
+
+      <h1 class="title">公开构建的一点实践</h1>
+
+      <div class="article">
+        <p class="lead">我开始分享工作中未完成的部分：开放的问题、小决策，以及每个变化背后的证据。</p>
+        <p>公开构建不在于宣告进展，而在于留下有用的痕迹。透明的记录帮助协作者理解什么改变了、为什么重要，以及支持在哪里起了作用。</p>
+        <p>这篇笔记只是这场持续实践中的一小段。</p>
+      </div>
+
+      <div class="hero-img" style="background-image:url('https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=1200&h=700&fit=crop');"></div>
+
+      <div class="action-row">
+        <button class="btn">支持</button>
+        <button class="btn primary">持续支持</button>
+      </div>
+
+      <div class="ownership">
+        <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        <span class="label">所有权</span>
+        <span class="right">锚定在 Monad · 0x12…89AB · <a href="#">在 Monad 上验证</a></span>
+      </div>
+    </main>
+
+    <!-- Right: Live stream panel -->
+    <aside class="right">
+      <div class="panel">
+        <h3 id="stream-heading">向 @alice 持续支持中</h3>
+        <span class="tag active-tag" id="stream-status">进行中</span>
+        <div style="margin-top:14px;">
+          <div class="muted small">已支持</div>
+          <div class="amount"><span id="stream-amount">0.007000</span><span class="unit">MON</span></div>
+          <div class="progress"><div class="bar" id="stream-progress"></div></div>
+          <div class="row"><span class="k">速率</span><span class="v">0.001 MON/s</span></div>
+          <div class="row"><span class="k">剩余</span><span class="v" id="stream-remaining">0.0130 MON</span></div>
+          <div class="row"><span class="k">预计结束</span><span class="v" id="stream-end">13s</span></div>
+        </div>
+        <div class="panel-actions">
+          <button class="btn" id="pause-stream">暂停</button>
+          <button class="btn outline-red" id="settle-stream">停止并结算</button>
+        </div>
+        <div class="settlement-box" id="settlement-box" hidden></div>
+      </div>
+
+      <div class="anchor">
+        <div class="logo-mark">M</div>
+        <div class="text">
+          <div class="title">已在 Monad 确认</div>
+          <div class="tx">Tx 0x74A9…C21F</div>
+          <a href="#">在浏览器查看 ↗</a>
+        </div>
+        <div class="check">✓</div>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<!-- ============================ SCREEN 2: Impact Claim ============================ -->
+<section class="screen" id="s2">
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="logo">ProofNote<small>基于 Monad</small></div>
+      <nav class="nav">
+        <a href="#">首页</a>
+        <a href="#">创建</a>
+        <a href="#">公益</a>
+        <a href="#">个人主页</a>
+      </nav>
+      <div class="wallet-card">
+        <span class="dot"></span>
+        <span class="addr">0x887…3F2a</span>
+        <span class="net">Monad 测试网</span>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="crumb">公益声明</div>
+      <h1 class="title">社区河岸清理</h1>
+
+      <div class="author">
+        <div class="avatar" style="background-image:url('https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=160&h=160&fit=crop&crop=faces');"></div>
+        <div>
+          <div class="name">Maya Rodriguez</div>
+          <div class="meta-line">@maya · 3 小时前记录</div>
+        </div>
+        <div style="margin-left:8px;"><span class="tag impact">公益</span></div>
+      </div>
+
+      <p class="lede" style="font-family:var(--serif); font-size:20px; line-height:1.4; color:var(--ink); max-width:640px;">
+        12 名志愿者在杭州河岸完成了社区清理工作，记录了工作内容和收集到的物资。
+      </p>
+
+      <div class="claim-table">
+        <div class="row"><span class="k">谁</span><span class="v"> 12 名志愿者</span></div>
+        <div class="row"><span class="k">行动</span><span class="v">完成社区清理</span></div>
+        <div class="row"><span class="k">时间</span><span class="v">2026-08-12</span></div>
+        <div class="row"><span class="k">地点</span><span class="v">杭州</span></div>
+        <div class="row"><span class="k">结果</span><span class="v">清理 3.4 公里 · 186 公斤垃圾</span></div>
+      </div>
+
+      <div class="hero-img" style="background-image:url('https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=1200&h=600&fit=crop'); height:280px;"></div>
+
+      <h2 class="h">证据</h2>
+      <p class="muted small" style="margin-top:-6px;">本声明附有 4 份证据。</p>
+      <div class="evidence-grid">
+        <div class="ev-card">
+          <div class="ev-thumb" style="background-image:url('https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=160&h=160&fit=crop');"></div>
+          <div>
+            <div class="ev-title">📷 照片</div>
+            <div class="meta">2026-08-12</div>
+            <div class="pill-hash">哈希已记录</div>
+            <div class="hash">0xA17C…89E2</div>
+          </div>
+        </div>
+        <div class="ev-card">
+          <div class="ev-thumb" style="background:#efe9d8;">🧾</div>
+          <div>
+            <div class="ev-title">🧾 收据</div>
+            <div class="meta">2026-08-12</div>
+            <div class="pill-hash">哈希已记录</div>
+            <div class="hash">0x6891…04F8</div>
+          </div>
+        </div>
+        <div class="ev-card">
+          <div class="ev-thumb" style="background-image:url('https://images.unsplash.com/photo-1551918120-9739cb430c6d?w=160&h=160&fit=crop');"></div>
+          <div>
+            <div class="ev-title">🎬 视频</div>
+            <div class="meta">2026-08-12</div>
+            <div class="pill-hash">哈希已记录</div>
+            <div class="hash">0x33DE…81AC</div>
+          </div>
+        </div>
+        <div class="ev-card">
+          <div class="ev-thumb" style="background:#f7f2e2;">📄</div>
+          <div>
+            <div class="ev-title">📄 文档</div>
+            <div class="meta">2026-08-13</div>
+            <div class="pill-hash">哈希已记录</div>
+            <div class="hash">0xC420…7B19</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="action-row" style="margin-top:22px;">
+        <button class="btn primary block" style="flex:1;" id="attest-impact">证明我参与过</button>
+        <button class="btn danger block" style="flex:1;" id="challenge-impact">质疑此声明</button>
+      </div>
+    </main>
+
+    <aside class="right">
+      <div class="panel">
+        <h3>验证</h3>
+        <p class="help">验证显示已记录的内容和尚未验证的内容。</p>
+        <div class="ladder">
+          <div class="step">
+            <div class="dot">✓</div>
+            <div>
+              <div class="l">L0</div>
+              <div class="desc">声明已记录</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="dot amber">✓</div>
+            <div>
+              <div class="l">L1</div>
+              <div class="desc">已附证据</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="dot lilac">✓</div>
+            <div>
+              <div class="l">L2</div>
+              <div class="desc">社区已证明</div>
+            </div>
+          </div>
+          <div class="step unreached">
+            <div class="dot empty">·</div>
+            <div>
+              <div class="l">L3</div>
+              <div class="desc">信任验证者未到场</div>
+            </div>
+          </div>
+          <div class="step unreached">
+            <div class="dot empty">·</div>
+            <div>
+              <div class="l">L4</div>
+              <div class="desc">强验证不可用</div>
+            </div>
+          </div>
+        </div>
+        <div class="summary">当前验证达到 L2。这反映的是现有证据和证明，并不代表绝对证明。</div>
+      </div>
+
+      <div class="anchor">
+        <div class="logo-mark">M</div>
+        <div class="text">
+          <div class="title">锚定在 Monad</div>
+          <div class="tx">0x12AB…89AB</div>
+          <div class="small" style="color:var(--ink-2); margin-top:2px;">声明记录 · <span style="color:var(--green); font-weight:600;">已确认</span></div>
+          <a href="#">在 Monad 上验证 ↗</a>
+        </div>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<!-- ============================ SCREEN 3: Profile ============================ -->
+<section class="screen" id="s3">
+  <div class="layout no-right">
+    <aside class="sidebar">
+      <div class="logo">ProofNote<small>基于 Monad</small></div>
+      <nav class="nav">
+        <a href="#">首页</a>
+        <a href="#">创建</a>
+        <a href="#">公益</a>
+        <a href="#" class="active">个人主页</a>
+      </nav>
+      <div class="wallet-card">
+        <span class="dot"></span>
+        <span class="addr">0x887…3F2a</span>
+        <span class="net">Monad 测试网</span>
+      </div>
+    </aside>
+
+    <main class="main wide">
+      <div class="profile-head">
+        <div class="avatar lg" style="background-image:url('https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=320&h=320&fit=crop&crop=faces');"></div>
+        <div>
+          <h1>Alice Chen</h1>
+          <div class="handle">@alice</div>
+          <div class="addr">0x12…89AB <a href="#" style="margin-left:6px;">在 Monad 上验证 ↗</a></div>
+          <p class="bio">独立产品设计师，记录开放工作、小实验，以及有意义改变背后的证据。</p>
+        </div>
+        <div><button class="btn">编辑资料</button></div>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="label">创作</div>
+          <div class="stat-row">
+            <div class="icon">
+              <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+            <div class="v">14</div>
+            <div class="k">笔记</div>
+          </div>
+          <div class="stat-row">
+            <div class="icon">
+              <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            </div>
+            <div class="v">4</div>
+            <div class="k">已变现笔记</div>
+          </div>
+          <div class="stat-row">
+            <div class="icon">
+              <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6" rx="9" ry="3"/><path d="M3 6v6c0 1.7 4 3 9 3s9-1.3 9-3V6"/><path d="M3 12v6c0 1.7 4 3 9 3s9-1.3 9-3v-6"/></svg>
+            </div>
+            <div class="v">328 MON</div>
+            <div class="k">创作者收入</div>
+          </div>
+          <div class="foot">已发布的作品与从读者获得的价值。</div>
+        </div>
+
+        <div class="stat-card" style="border-color:#f5dcc7;">
+          <div class="label" style="color:#c46a18;">贡献</div>
+          <div class="stat-row">
+            <div class="icon amber">
+              <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 6v6c0 5 3.5 9 8 10 4.5-1 8-5 8-10V6z"/></svg>
+            </div>
+            <div class="v">2</div>
+            <div class="k">公益笔记</div>
+          </div>
+          <div class="stat-row">
+            <div class="icon amber">
+              <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-12V5l-8-3-8 3v5c0 8 8 12 8 12z"/></svg>
+            </div>
+            <div class="v">6</div>
+            <div class="k">收到的证明</div>
+          </div>
+          <div class="stat-row">
+            <div class="icon green">
+              <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            </div>
+            <div class="v">32.8 MON</div>
+            <div class="k">定向支持</div>
+          </div>
+          <div class="foot">已验证的贡献与指向公益的支持。</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="block">
+          <h4>当前收入</h4>
+          <div class="income-amt">0.014 MON/s</div>
+          <div class="muted small">跨 3 个活跃支持流</div>
+          <div style="text-align:right; margin-top:8px;">
+            <button class="btn" id="view-streams">查看支持流</button>
+          </div>
+        </div>
+        <div class="block">
+          <h4>活跃支持流</h4>
+          <div class="stream-row">
+            <span class="indicator">● ACTIVE</span>
+            <span class="name">公开构建的一点实践</span>
+            <span class="rate">0.006 MON/s</span>
+          </div>
+          <div class="stream-row">
+            <span class="indicator">● ACTIVE</span>
+            <span class="name">来自未完成界面的笔记</span>
+            <span class="rate">0.005 MON/s</span>
+          </div>
+          <div class="stream-row">
+            <span class="indicator">● ACTIVE</span>
+            <span class="name">首版原型之后改变了什么</span>
+            <span class="rate">0.003 MON/s</span>
+          </div>
+          <a href="#" class="manage-link">管理全部 ↗</a>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="block">
+          <h4>可领取</h4>
+          <div class="income-amt" id="claimable-amount">18.4200 MON</div>
+          <div class="muted small">已结算，可领取</div>
+          <div style="text-align:right; margin-top:14px;">
+            <button class="btn primary" id="claim-income">领取</button>
+          </div>
+        </div>
+        <div class="block">
+          <h4>最近发布</h4>
+          <div class="recent-card">
+            <div class="thumb" style="background-image:url('https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=200&h=200&fit=crop');"></div>
+            <div>
+              <span class="tag">已变现</span>
+              <h5>公开构建的一点实践</h5>
+              <p>分享开放的问题、小决策，以及每个变化背后的证据。</p>
+              <div class="meta-line">2026年8月12日 · <a href="#">阅读笔记 ↗</a></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- ============================ SCREEN 4: Note + Support Panel ============================ -->
+<section class="screen active" id="s4">
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="logo">ProofNote<small>基于 Monad</small></div>
+      <nav class="nav">
+        <a href="#">首页</a>
+        <a href="#" class="active">创建</a>
+        <a href="#">公益</a>
+        <a href="#">个人主页</a>
+      </nav>
+      <div class="wallet-card">
+        <span class="dot"></span>
+        <span class="addr">0x887…3F2a</span>
+        <span class="net">Monad 测试网</span>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="author">
+        <div class="avatar" style="background-image:url('https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=160&h=160&fit=crop&crop=faces');"></div>
+        <div>
+          <div class="name">Alice Chen</div>
+          <div class="meta-line">@alice · 2 小时前</div>
+        </div>
+        <div style="margin-left:8px;"><span class="tag">已变现</span></div>
+      </div>
+
+      <h1 class="title">公开构建的一点实践</h1>
+
+      <div class="article">
+        <p class="lead">我开始分享工作中未完成的部分：开放的问题、小决策，以及每个变化背后的证据。</p>
+        <p>公开构建不在于宣告进展，而在于留下有用的痕迹。透明的记录帮助协作者理解什么改变了、为什么重要，以及支持在哪里起了作用。</p>
+        <p>这篇笔记只是这场持续实践中的一小段。</p>
+      </div>
+
+      <div class="hero-img" style="background-image:url('https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=1200&h=700&fit=crop');"></div>
+
+      <div class="action-row">
+        <button class="btn">支持</button>
+        <button class="btn primary">持续支持</button>
+      </div>
+
+      <div class="ownership">
+        <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        <span class="label">所有权</span>
+        <span class="right">锚定在 Monad · 0x12…89AB · <a href="#">在 Monad 上验证</a></span>
+      </div>
+    </main>
+
+    <aside class="right">
+      <div class="panel">
+        <h3>支持这篇笔记</h3>
+        <div class="segmented" id="support-mode">
+          <button data-mode="tip">打赏</button>
+          <button class="active" data-mode="stream">持续支持</button>
+        </div>
+        <div class="row" id="support-rate-row"><span class="k" id="support-rate-label">速率</span><span class="v" id="support-rate-value">0.001 MON/s</span></div>
+        <div class="row" id="support-budget-row"><span class="k">最大预算</span><span class="v">0.0200 MON</span></div>
+        <div class="row" style="margin-top:8px;"><span class="k">创作者获得</span><span class="v" id="creator-quote">0.0199 MON</span></div>
+        <div class="row"><span class="k">协议费用</span><span class="v" id="protocol-quote">0.0001 MON</span></div>
+        <div class="row" style="border-top:2px solid var(--line-2); margin-top:6px; padding-top:10px;">
+          <span class="k" style="font-weight:600; color:var(--ink);">总计</span>
+          <span class="v" style="font-weight:600;" id="total-quote">0.0200 MON</span>
+        </div>
+        <button class="btn primary block" style="margin-top:14px;" id="start-support">开始持续支持</button>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<!-- ============================ SCREEN 5: Open Ledger ============================ -->
+<section class="screen" id="s5">
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="logo">ProofNote<small>基于 Monad</small></div>
+      <nav class="nav">
+        <a href="#">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          首页
+        </a>
+        <a href="#">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+          创建
+        </a>
+        <a href="#" class="active">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 6v6c0 5 3.5 9 8 10 4.5-1 8-5 8-10V6z"/></svg>
+          公益
+        </a>
+        <a href="#">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          个人主页
+        </a>
+      </nav>
+      <div class="wallet-card">
+        <span class="dot"></span>
+        <span class="addr">0x887…3F2a</span>
+        <span class="net">Monad 测试网</span>
+      </div>
+    </aside>
+
+    <main class="main wide">
+      <div class="crumb">公开公益记录</div>
+      <h1 class="title" style="font-size:44px;">公开账本</h1>
+      <p class="lede">一份人类可读的记录：什么改变了，谁贡献了，证据如何被验证。</p>
+
+      <div class="ledger-card">
+        <div class="ledger-author">
+          <div class="avatar" style="background-image:url('https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=160&h=160&fit=crop&crop=faces');"></div>
+          <div>
+            <div class="name">Maya Rodriguez</div>
+            <div class="meta-line">@maya · 3 小时前更新</div>
+          </div>
+          <div style="margin-left:auto;"><span class="tag impact">公益</span></div>
+        </div>
+
+        <h2 class="h" style="margin-top:6px;">修复社区阅览室</h2>
+        <p>我们用捐赠物资、志愿者工时和每笔贡献的透明记录，重新开放了社区阅览室。</p>
+
+        <div class="ledger-hero" style="background-image:url('https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=1200&h=500&fit=crop');"></div>
+
+        <h2 class="h" style="font-size:18px;">公益声明</h2>
+        <div class="impact-table">
+          <div class="row"><span class="k">阅览室重新开放</span><span class="v">2026年8月12日</span></div>
+          <div class="row"><span class="k">已编目图书</span><span class="v">428</span></div>
+          <div class="row"><span class="k">志愿者工时已记录</span><span class="v">64 小时</span></div>
+        </div>
+
+        <h2 class="h" style="font-size:18px;">证据</h2>
+        <div class="evidence-list" id="ledger-evidence">
+          <div class="ev-list-item">
+            <span class="ev-icon">🖼</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+            <div>
+              <div style="font-weight:500;">空间重新开放记录</div>
+              <div class="ev-sub">照片集 · 已验证</div>
+            </div>
+            <div class="ev-date">2026年8月12日</div>
+            <span class="check">✓</span>
+          </div>
+          <div class="ev-list-item">
+            <span class="ev-icon">📦</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <div>
+              <div style="font-weight:500;">捐赠清单</div>
+              <div class="ev-sub">已签文档 · 已验证</div>
+            </div>
+            <div class="ev-date">2026年8月12日</div>
+            <span class="check">✓</span>
+          </div>
+          <div class="ev-list-item">
+            <span class="ev-icon">👥</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <div>
+              <div style="font-weight:500;">志愿者出勤</div>
+              <div class="ev-sub">社区证明 · 已验证</div>
+            </div>
+            <div class="ev-date">2026年8月12日</div>
+            <span class="check">✓</span>
+          </div>
+        </div>
+
+        <h2 class="h" style="font-size:18px;">贡献者</h2>
+        <div class="contributors">
+          <div class="contrib">
+            <div class="avatar" style="background-image:url('https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=80&h=80&fit=crop&crop=faces');"></div>
+            <span>Maya</span>
+          </div>
+          <div class="contrib">
+            <div class="avatar" style="background-image:url('https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop&crop=faces');"></div>
+            <span>Jon</span>
+          </div>
+          <div class="contrib">
+            <div class="avatar" style="background-image:url('https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop&crop=faces');"></div>
+            <span>Leila</span>
+          </div>
+          <span class="muted small" style="margin-left:8px;">已记录 7 位贡献者</span>
+        </div>
+      </div>
+    </main>
+
+    <aside class="right">
+      <div class="panel">
+        <h3>验证</h3>
+        <div class="verified-badge" style="margin-bottom:14px;">已验证</div>
+        <div class="row"><span class="k">声明编号</span><span class="v" style="font-family:inherit;">PN-IMP-00428</span></div>
+        <div class="row"><span class="k">证明</span><span class="v" style="font-family:inherit;">7</span></div>
+        <div class="row"><span class="k">最后验证</span><span class="v" style="font-family:inherit;">2026年8月12日</span></div>
+        <div class="row"><span class="k">网络</span><span class="v" style="font-family:inherit;">Monad 测试网</span></div>
+
+        <div style="margin-top:18px;">
+          <div style="font-family:var(--serif); font-size:15px; font-weight:600; margin-bottom:10px;">社区证明</div>
+          <div class="attest-stack">
+            <div class="avatar" style="background-image:url('https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=80&h=80&fit=crop&crop=faces');"></div>
+            <div class="avatar" style="background-image:url('https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=80&h=80&fit=crop&crop=faces');"></div>
+            <div class="avatar" style="background-image:url('https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop&crop=faces');"></div>
+            <div class="avatar" style="background-image:url('https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop&crop=faces');"></div>
+            <div class="avatar" style="background-image:url('https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=80&h=80&fit=crop&crop=faces');"></div>
+            <div class="more">+3</div>
+          </div>
+          <div class="muted small" style="margin-top:8px;">7 位贡献者确认了此记录。</div>
+        </div>
+
+        <div class="panel-actions">
+          <button class="btn primary block" style="flex:1;" id="view-evidence">查看证据</button>
+          <button class="btn block" style="flex:1;" id="attest-ledger">证明我的贡献</button>
+        </div>
+      </div>
+
+      <div class="anchor">
+        <div class="logo-mark">M</div>
+        <div class="text">
+          <div class="title">锚定在 Monad</div>
+          <div class="tx">0x12AB8…89AB</div>
+          <div class="small" style="color:var(--ink-2); margin-top:2px;">区块 9,842,116 · <span style="color:var(--green); font-weight:600;">已确认</span></div>
+          <a href="#">在 Monad 上验证 ↗</a>
+        </div>
+      </div>
+
+      <div class="why-open">
+        <h4>为何公开</h4>
+        <p>证据保持可读，验证保持公开，贡献者保留他们的语境。</p>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<div class="toast-stack" id="toast-stack" aria-live="polite"></div>
+
+<div class="tx-overlay" id="tx-overlay" role="dialog" aria-modal="true" aria-labelledby="tx-title">
+  <div class="tx-dialog">
+    <h3 id="tx-title">准备交易</h3>
+    <p id="tx-description">正在获取最新的链上参数。</p>
+    <div class="tx-step" data-step="prepare"><span class="step-dot">1</span><span>准备交易参数</span></div>
+    <div class="tx-step" data-step="wallet"><span class="step-dot">2</span><span>在钱包中确认</span></div>
+    <div class="tx-step" data-step="submitted"><span class="step-dot">3</span><span>已提交到 Monad</span></div>
+    <div class="tx-step" data-step="confirmed"><span class="step-dot">4</span><span>链上确认</span></div>
+    <div class="tx-actions">
+      <button class="btn" id="tx-close" disabled>完成</button>
+    </div>
+  </div>
+</div>
+
+<div class="tx-overlay" id="composer-overlay" role="dialog" aria-modal="true" aria-labelledby="composer-title">
+  <div class="tx-dialog">
+    <h3 id="composer-title">创建一篇笔记</h3>
+    <p>先完成内容，再按需开启持续支持或公益声明。</p>
+    <div class="form-field">
+      <label for="note-title-input">标题</label>
+      <input id="note-title-input" value="公开构建的一点实践" />
+    </div>
+    <div class="form-field">
+      <label for="note-body-input">正文摘要</label>
+      <textarea id="note-body-input" rows="4">我开始分享工作中未完成的部分：开放的问题、小决策，以及每个变化背后的证据。</textarea>
+    </div>
+    <label class="center gap-8 small"><input type="checkbox" id="monetized-toggle" checked /> 开启持续支持</label>
+    <div class="tx-actions gap-8">
+      <button class="btn" id="composer-cancel">取消</button>
+      <button class="btn primary" id="composer-publish">发布并锚定</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const tabs = [...document.querySelectorAll('#tabs .tab')];
+  const screens = [...document.querySelectorAll('.screen')];
+  const toastStack = document.getElementById('toast-stack');
+  const txOverlay = document.getElementById('tx-overlay');
+  const txClose = document.getElementById('tx-close');
+  const composerOverlay = document.getElementById('composer-overlay');
+  const navRoute = { '首页': 's4', '公益': 's2', '个人主页': 's3' };
+  let walletConnected = true;
+  let txTimers = [];
+
+  function showToast(title, message, tone = '') {
+    const toast = document.createElement('div');
+    toast.className = `toast ${tone}`.trim();
+    toast.innerHTML = `<strong>${title}</strong><span>${message}</span>`;
+    toastStack.appendChild(toast);
+    setTimeout(() => toast.remove(), 3600);
+  }
+
+  function setActiveNav(label) {
+    document.querySelectorAll('.sidebar .nav a').forEach(link => {
+      link.classList.toggle('active', link.textContent.trim() === label);
+    });
+  }
+
+  function showScreen(id, navLabel) {
+    screens.forEach(screen => screen.classList.toggle('active', screen.id === id));
+    tabs.forEach(tab => tab.classList.toggle('active', tab.dataset.target === id));
+    if (navLabel) setActiveNav(navLabel);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  tabs.forEach(tab => tab.addEventListener('click', () => showScreen(tab.dataset.target)));
+
+  document.querySelectorAll('.sidebar .nav a').forEach(link => {
+    link.addEventListener('click', event => {
+      event.preventDefault();
+      const label = link.textContent.trim();
+      if (label === '创建') {
+        composerOverlay.classList.add('open');
+        document.getElementById('note-title-input').focus();
+        return;
+      }
+      const target = navRoute[label];
+      if (target) showScreen(target, label);
+    });
+  });
+
+  function syncWalletCards() {
+    document.querySelectorAll('.wallet-card').forEach(card => {
+      card.classList.toggle('disconnected', !walletConnected);
+      card.setAttribute('role', 'button');
+      card.setAttribute('tabindex', '0');
+      card.setAttribute('aria-label', walletConnected ? '钱包已连接，点击断开' : '连接钱包');
+      card.querySelector('.addr').textContent = walletConnected ? '0x887…3F2a' : '连接钱包';
+      card.querySelector('.net').textContent = walletConnected ? 'Monad 测试网' : '未连接';
+    });
+  }
+
+  function toggleWallet() {
+    walletConnected = !walletConnected;
+    syncWalletCards();
+    showToast(walletConnected ? '钱包已连接' : '钱包已断开', walletConnected ? '已连接 0x887…3F2a · Monad 测试网' : '再次点击钱包卡片即可连接。', walletConnected ? 'success' : 'warning');
+  }
+
+  document.querySelectorAll('.wallet-card').forEach(card => {
+    card.addEventListener('click', toggleWallet);
+    card.addEventListener('keydown', event => {
+      if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); toggleWallet(); }
+    });
+  });
+  syncWalletCards();
+
+  function ensureWallet() {
+    if (walletConnected) return true;
+    walletConnected = true;
+    syncWalletCards();
+    showToast('钱包已连接', '演示钱包已连接到 Monad 测试网。', 'success');
+    return true;
+  }
+
+  function resetTxSteps() {
+    txTimers.forEach(clearTimeout);
+    txTimers = [];
+    document.querySelectorAll('.tx-step').forEach(step => step.classList.remove('active', 'done'));
+    txClose.disabled = true;
+  }
+
+  function runTransaction(title, description, onConfirmed) {
+    ensureWallet();
+    resetTxSteps();
+    document.getElementById('tx-title').textContent = title;
+    document.getElementById('tx-description').textContent = description;
+    txOverlay.classList.add('open');
+    const steps = [...document.querySelectorAll('.tx-step')];
+    const labels = [
+      '正在获取最新的链上参数。',
+      '请在钱包中确认，ProofNote 不会替你签名。',
+      '交易已广播，正在等待 Monad 确认。',
+      '交易已确认，页面状态已经同步。'
+    ];
+    steps.forEach((step, index) => {
+      txTimers.push(setTimeout(() => {
+        steps.forEach((item, itemIndex) => {
+          item.classList.toggle('done', itemIndex < index);
+          item.classList.toggle('active', itemIndex === index);
+          item.querySelector('.step-dot').textContent = itemIndex < index ? '✓' : String(itemIndex + 1);
+        });
+        document.getElementById('tx-description').textContent = labels[index];
+        if (index === steps.length - 1) {
+          txTimers.push(setTimeout(() => {
+            steps[index].classList.remove('active');
+            steps[index].classList.add('done');
+            steps[index].querySelector('.step-dot').textContent = '✓';
+            txClose.disabled = false;
+            if (onConfirmed) onConfirmed();
+          }, 500));
+        }
+      }, index * 700));
+    });
+  }
+
+  txClose.addEventListener('click', () => txOverlay.classList.remove('open'));
+  txOverlay.addEventListener('click', event => {
+    if (event.target === txOverlay && !txClose.disabled) txOverlay.classList.remove('open');
+  });
+
+  document.getElementById('composer-cancel').addEventListener('click', () => composerOverlay.classList.remove('open'));
+  composerOverlay.addEventListener('click', event => {
+    if (event.target === composerOverlay) composerOverlay.classList.remove('open');
+  });
+  document.getElementById('composer-publish').addEventListener('click', () => {
+    const title = document.getElementById('note-title-input').value.trim();
+    const body = document.getElementById('note-body-input').value.trim();
+    if (!title || !body) { showToast('还不能发布', '请填写标题和正文摘要。', 'warning'); return; }
+    composerOverlay.classList.remove('open');
+    runTransaction('发布并锚定笔记', '正在计算内容哈希并准备 Ownership Anchor。', () => {
+      document.querySelectorAll('h1.title').forEach(node => {
+        if (node.textContent.includes('公开构建')) node.textContent = title;
+      });
+      document.querySelectorAll('.article .lead').forEach(node => node.textContent = body);
+      showToast('笔记已发布', '内容哈希已锚定在 Monad。', 'success');
+      showScreen('s4', '首页');
+    });
+  });
+
+  const supportMode = document.getElementById('support-mode');
+  function setSupportMode(mode) {
+    supportMode.querySelectorAll('button').forEach(button => button.classList.toggle('active', button.dataset.mode === mode));
+    const isTip = mode === 'tip';
+    document.getElementById('support-rate-label').textContent = isTip ? '打赏金额' : '速率';
+    document.getElementById('support-rate-value').textContent = isTip ? '0.0500 MON' : '0.001 MON/s';
+    document.getElementById('support-budget-row').style.display = isTip ? 'none' : 'flex';
+    document.getElementById('creator-quote').textContent = isTip ? '0.0490 MON' : '0.0199 MON';
+    document.getElementById('protocol-quote').textContent = isTip ? '0.0010 MON' : '0.0001 MON';
+    document.getElementById('total-quote').textContent = isTip ? '0.0500 MON' : '0.0200 MON';
+    document.getElementById('start-support').textContent = isTip ? '发送打赏' : '开始持续支持';
+    document.getElementById('start-support').dataset.mode = mode;
+  }
+  supportMode.querySelectorAll('button').forEach(button => button.addEventListener('click', () => setSupportMode(button.dataset.mode)));
+
+  document.querySelectorAll('#s4 .action-row button').forEach((button, index) => {
+    button.addEventListener('click', () => setSupportMode(index === 0 ? 'tip' : 'stream'));
+  });
+
+  const stream = { status: 'active', amount: 0.007, rate: 0.001, budget: 0.02, lastTick: performance.now() };
+  function renderStream() {
+    const remaining = Math.max(0, stream.budget - stream.amount);
+    const seconds = stream.rate > 0 ? Math.ceil(remaining / stream.rate) : 0;
+    document.getElementById('stream-amount').textContent = stream.amount.toFixed(6);
+    document.getElementById('stream-remaining').textContent = `${remaining.toFixed(4)} MON`;
+    document.getElementById('stream-end').textContent = stream.status === 'paused' ? '已暂停' : stream.status === 'settled' ? '已结算' : `${seconds}s`;
+    document.getElementById('stream-progress').style.width = `${Math.min(100, stream.amount / stream.budget * 100)}%`;
+    const status = document.getElementById('stream-status');
+    status.textContent = stream.status === 'active' ? '进行中' : stream.status === 'paused' ? '已暂停' : '已结算';
+    status.className = `tag ${stream.status === 'active' ? 'active-tag' : ''}`;
+    document.getElementById('stream-heading').textContent = stream.status === 'settled' ? '持续支持已结算' : '向 @alice 持续支持中';
+    document.getElementById('pause-stream').textContent = stream.status === 'paused' ? '恢复' : '暂停';
+    document.getElementById('pause-stream').disabled = stream.status === 'settled';
+    document.getElementById('settle-stream').disabled = stream.status === 'settled';
+  }
+
+  setInterval(() => {
+    const now = performance.now();
+    const elapsed = (now - stream.lastTick) / 1000;
+    stream.lastTick = now;
+    if (stream.status === 'active') {
+      stream.amount = Math.min(stream.budget, stream.amount + elapsed * stream.rate);
+      if (stream.amount >= stream.budget) stream.status = 'paused';
+      renderStream();
+    }
+  }, 100);
+  renderStream();
+
+  document.getElementById('start-support').addEventListener('click', event => {
+    const mode = event.currentTarget.dataset.mode || 'stream';
+    if (mode === 'tip') {
+      runTransaction('发送一次性打赏', '正在获取最新分账报价。', () => showToast('打赏已确认', '0.0490 MON 已计入创作者收入。', 'success'));
+      return;
+    }
+    runTransaction('创建持续支持流', '正在准备 0.001 MON/s、最大预算 0.0200 MON 的支持流。', () => {
+      stream.amount = 0;
+      stream.status = 'active';
+      stream.lastTick = performance.now();
+      document.getElementById('settlement-box').hidden = true;
+      renderStream();
+      showScreen('s1', '首页');
+      showToast('持续支持已开始', '金额会在本地平滑增长，并在新区块时同步。', 'success');
+    });
+  });
+
+  document.getElementById('pause-stream').addEventListener('click', () => {
+    if (stream.status === 'settled') return;
+    const next = stream.status === 'paused' ? 'active' : 'paused';
+    runTransaction(next === 'paused' ? '暂停持续支持' : '恢复持续支持', '状态变化需要钱包确认。', () => {
+      stream.status = next;
+      stream.lastTick = performance.now();
+      renderStream();
+      showToast(next === 'paused' ? '已暂停' : '已恢复', next === 'paused' ? '累计金额已停止增长。' : '累计金额将继续增长。', 'success');
+    });
+  });
+
+  document.getElementById('settle-stream').addEventListener('click', () => {
+    if (stream.status === 'settled') return;
+    runTransaction('停止并结算', '正在计算创作者收入、协议费用和未使用预算。', () => {
+      stream.status = 'settled';
+      renderStream();
+      const fee = stream.amount * 0.005;
+      const creator = stream.amount - fee;
+      const refund = stream.budget - stream.amount;
+      const box = document.getElementById('settlement-box');
+      box.hidden = false;
+      box.innerHTML = `<div class="row"><span class="k">创作者收入</span><span class="v">${creator.toFixed(6)} MON</span></div><div class="row"><span class="k">协议费用</span><span class="v">${fee.toFixed(6)} MON</span></div><div class="row"><span class="k">粉丝退回</span><span class="v">${refund.toFixed(6)} MON</span></div>`;
+      showToast('结算完成', '资金拆分已在 Monad 确认。', 'success');
+    });
+  });
+
+  document.getElementById('view-streams').addEventListener('click', () => showScreen('s1', '首页'));
+  document.getElementById('claim-income').addEventListener('click', event => {
+    const button = event.currentTarget;
+    runTransaction('领取创作者收入', '领取 18.4200 MON 至当前钱包。', () => {
+      document.getElementById('claimable-amount').textContent = '0.0000 MON';
+      button.disabled = true;
+      button.textContent = '已领取';
+      showToast('领取完成', '18.4200 MON 已发送到创作者钱包。', 'success');
+    });
+  });
+
+  document.getElementById('attest-impact').addEventListener('click', event => {
+    const button = event.currentTarget;
+    runTransaction('证明我参与过', '这是一条参与者证明，不代表平台对事实作绝对判断。', () => {
+      button.disabled = true;
+      button.textContent = '已提交参与证明';
+      showToast('证明已记录', '你的参与声明已锚定在 Monad。', 'success');
+    });
+  });
+  document.getElementById('challenge-impact').addEventListener('click', () => showToast('质疑入口', '产品 P1 将接入质疑理由、证据和处理状态。', 'warning'));
+
+  document.getElementById('view-evidence').addEventListener('click', () => {
+    const list = document.getElementById('ledger-evidence');
+    list.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    list.classList.remove('flash');
+    requestAnimationFrame(() => list.classList.add('flash'));
+  });
+  document.getElementById('attest-ledger').addEventListener('click', event => {
+    const button = event.currentTarget;
+    runTransaction('证明我的贡献', '正在为公开账本添加社区证明。', () => {
+      button.disabled = true;
+      button.textContent = '贡献已证明';
+      showToast('贡献已记录', '公开账本现在包含你的证明。', 'success');
+    });
+  });
+
+  document.querySelectorAll('.ownership').forEach(card => {
+    card.setAttribute('role', 'button');
+    card.setAttribute('tabindex', '0');
+    card.setAttribute('aria-expanded', 'false');
+    const detail = document.createElement('div');
+    detail.className = 'ownership-detail';
+    detail.innerHTML = 'Content Hash&nbsp; 0x79f3…c21d<br>Manifest URI&nbsp; ipfs://bafy…8ab1<br>Tx Hash&nbsp; 0x74A9…C21F';
+    card.appendChild(detail);
+    const toggle = () => {
+      const expanded = card.classList.toggle('expanded');
+      card.setAttribute('aria-expanded', String(expanded));
+    };
+    card.addEventListener('click', event => { if (!event.target.closest('a')) toggle(); });
+    card.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); toggle(); } });
+  });
+
+  document.querySelectorAll('a[href="#"]').forEach(link => link.addEventListener('click', event => {
+    if (!link.closest('.nav')) {
+      event.preventDefault();
+      if (link.closest('#s2 .anchor')) showScreen('s5', '公益');
+      else showToast('链上核验', '正式接入时将打开由 /config 返回的 Monad Explorer。');
+    }
+  }));
+
+  setSupportMode('stream');
+  setActiveNav('首页');
+</script>
+
+</body>
+</html>
